@@ -1,0 +1,49 @@
+/* Placeholders: a value not decided yet is shown, and shown as a gap. */
+.todo {
+  background-color: #fff3cd;
+  border: 1px dashed #b58900;
+  border-radius: 2px;
+  padding: 0 0.25em;
+  font-family: var(--bs-font-monospace);
+  font-size: 0.875em;
+  color: #6b4e00;
+}
+
+/* Status of a part of the data package. */
+.part-status {
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+}
+
+/* Wide tables scroll inside their own box instead of the page. */
+.cell-output-display {
+  overflow-x: auto;
+}
+
+/* Codebooks: the meaning of a column is what a reader came for, so it gets the room. */
+td.codebook-meaning {
+  min-width: 24rem;
+}
+
+/* A wide table inside a tab scrolls in its own box. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* On a phone a table scrolls inside its own box instead of widening the page. */
+.dataTables_wrapper {
+  overflow-x: auto;
+}
+
+@media (max-width: 767.98px) {
+  main table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* A long unbroken word, such as a URL or a placeholder, breaks rather than widening the page. */
+main p,
+main li {
+  overflow-wrap: break-word;
+}

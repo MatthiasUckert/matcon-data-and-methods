@@ -1,0 +1,125 @@
+Column,Type,Block,Meaning,Missing,StataName
+DocID,VARCHAR,Identification,"One registrant's copy of an Exhibit 10 attachment: the registrant's CIK and a hash of the attachment, joined by a hyphen. Unique in this table and the key every other table joins on.",never,DocID
+HashDocument,VARCHAR,Identification,"Hash of the attachment's content. Shared by all registrant copies of one document, so it groups the copies of one contract.",never,HashDocument
+HashIndex,VARCHAR,Identification,The filing that carried the attachment. Joins to Summaries (the filing's announcement) and CtoOrders.,never,HashIndex
+CIK,VARCHAR,Identification,"The registrant's Central Index Key on EDGAR. With DateFiled, the key for matching other databases.",never,CIK
+CompanyName,VARCHAR,Identification,The registrant's name as EDGAR recorded it for this filing.,never,CompanyName
+DocName,VARCHAR,Identification,EDGAR's file name of the attachment. With the CIK and the accession number it locates the document on EDGAR.,never,DocName
+DocSeq,INTEGER,Identification,Position of the attachment in the filing's list of documents.,never,DocSeq
+UrlDocument,VARCHAR,Identification,Address of the attachment on EDGAR.,never,UrlDocument
+UrlIndexPage,VARCHAR,Identification,"Address of the filing's index page on EDGAR, which lists every document of the filing and contains the accession number.",never,UrlIndexPage
+DocTypeRaw,VARCHAR,Identification,"The exhibit type as filed, such as EX-10.1 or EX-10.23.",never,DocTypeRaw
+DocTypeMod,VARCHAR,Identification,The exhibit type reduced to its family: Exhibit10 on every row of this table.,never,DocTypeMod
+DocDesc,VARCHAR,Identification,"The filer's own description of the exhibit, as free text.",the filer gave none,DocDesc
+FormType,VARCHAR,Identification,"The form the attachment was filed with: 8-K, 10-K, 10-Q, S-1 and so on.",never,FormType
+DocExt,VARCHAR,Identification,"File type of the attachment: htm, html, txt or pdf; a few are written in upper case.",never,DocExt
+DateFiled,DATE,Identification,The day EDGAR accepted the filing.,never,DateFiled
+nWords,INTEGER,Text,Words in the attachment's text.,the attachment holds no readable text,nWords
+nWordsAdj,INTEGER,Text,nWords without the words of EDGAR's document header.,the attachment holds no readable text,nWordsAdj
+nChars,INTEGER,Text,Characters in the attachment's text (TextRaw in text/). Every span offset counts characters of this text.,the attachment holds no readable text,nChars
+nNums,INTEGER,Text,Numeric tokens in the text.,the attachment holds no readable text,nNums
+pStopShort,DOUBLE,Text,Share of tokens that are short function words. A low value marks a document that is not running prose.,the attachment holds no readable text,pStopShort
+Removed,BOOLEAN,Screening,"TRUE where the attachment failed the screen for usable text (reason in RemClass). These attachments stay in the table, flagged, so that what was set aside remains visible.",never,Removed
+RemClass,VARCHAR,Screening,"Why the attachment was set aside: too short, not prose, mostly digits, or no readable text.",Removed is FALSE,RemClass
+nCIK,INTEGER,Copies,Number of registrants the filing names.,never,nCIK
+MultFiler,INTEGER,Copies,"1 where the filing names more than one registrant, so that the attachment appears once per registrant.",never,MultFiler
+FilerCopiesAgree,INTEGER,Copies,"1 where all registrant copies of the attachment have the same length. Where they differ (one attachment in the corpus), the entity variables describe the primary copy.",never,FilerCopiesAgree
+PrimaryFiler,INTEGER,Copies,1 on the one copy of each attachment the entity variables were computed from; the other copies carry the same values. Count contracts on PrimaryFiler == 1.,never,PrimaryFiler
+SampleStepCode,INTEGER,Sample,"The step of the paper's sample selection at which the attachment leaves the sample, as a sortable code; 6 is the final sample.",never,SampleStepCode
+SampleStepDesc,VARCHAR,Sample,"The same step in words: outside 2001-2024, malformed document, CIK not in Compustat, several Compustat quarters matched, no Compustat match on the filing date, or final sample.",never,SampleStepDesc
+DescSample,INTEGER,Sample,1 where the attachment is in the paper's descriptive sample.,never,DescSample
+EstiSample,INTEGER,Sample,"1 where the attachment is in the paper's estimation sample, which requires a Compustat match on CIK and filing date. The matched Compustat data are not published.",never,EstiSample
+HasCto,INTEGER,Orders,1 where a confidential treatment order granted treatment for this contract. Orders that denied or revoked treatment do not count.,never,HasCto
+nCtoOrders,INTEGER,Orders,"Number of granting confidential treatment orders that name the contract, extensions included.",never,nCtoOrders
+CtoReleaseFirst,DATE,Orders,"Earliest date on which the granted treatment ends, across those orders.","no granting order names the contract, or none states an end date (common after 2019)",CtoReleaseFirst
+CtoReleaseLast,DATE,Orders,"Latest date on which the granted treatment ends, across those orders.",as CtoReleaseFirst,CtoReleaseLast
+CtoIsExtension,INTEGER,Orders,1 where any of those orders extends an earlier grant.,never,CtoIsExtension
+nItems,INTEGER,Items,Number of items the filing that carried the attachment reports (8-K filings).,"the filing reports no items (10-K, 10-Q and other forms)",nItems
+nItemsDotted,INTEGER,Items,"How many of those items use the numbering introduced in 2004 (1.01, 2.02, ...).","the filing reports no items (10-K, 10-Q and other forms)",nItemsDotted
+nItemsVoluntary,INTEGER,Items,"Items the registrant chose to report: 2.02, 7.01 and 8.01 from 2004, and their predecessors 12, 9 and 5 before.","the filing reports no items (10-K, 10-Q and other forms)",nItemsVoluntary
+nItemsMandatory,INTEGER,Items,"Items the registrant had to report, triggered by an event.","the filing reports no items (10-K, 10-Q and other forms)",nItemsMandatory
+nItemsUnknown,INTEGER,Items,Items whose code belongs to neither numbering; zero on every row of this table.,"the filing reports no items (10-K, 10-Q and other forms)",nItemsUnknown
+ItemEra,VARCHAR,Items,"Which numbering the filing uses: Post (from 2004), Pre, or Mixed. Read from the codes, not the date.","the filing reports no items (10-K, 10-Q and other forms)",ItemEra
+ItemCodes,VARCHAR,Items,"Every item the filing reports, separated by |, in the order reported.","the filing reports no items (10-K, 10-Q and other forms)",ItemCodes
+ReportsItem101,INTEGER,Items,"1 where the filing reports Item 1.01, entry into a material definitive agreement.","the filing reports no items (10-K, 10-Q and other forms)",ReportsItem101
+ReportsItem202,INTEGER,Items,"1 where the filing reports Item 2.02, results of operations (Item 12 before 2004).","the filing reports no items (10-K, 10-Q and other forms)",ReportsItem202
+ReportsItem701,INTEGER,Items,"1 where the filing reports Item 7.01, Regulation FD disclosure (Item 9 before 2004).","the filing reports no items (10-K, 10-Q and other forms)",ReportsItem701
+ReportsItem801,INTEGER,Items,"1 where the filing reports Item 8.01, other events (Item 5 before 2004).","the filing reports no items (10-K, 10-Q and other forms)",ReportsItem801
+ReportsItem901,INTEGER,Items,"1 where the filing reports Item 9.01, financial statements and exhibits (Item 7 before 2004).","the filing reports no items (10-K, 10-Q and other forms)",ReportsItem901
+SumDates,INTEGER,Announcement,Distinct agreement dates at the start of the filing's Item 1.01 text: a proxy for the number of agreements it announces.,"the filing is not an 8-K, or its Item 1.01 text could not be recovered",SumDates
+SumIsSingle,INTEGER,Announcement,1 where that text names exactly one agreement date.,"the filing is not an 8-K, or its Item 1.01 text could not be recovered",SumIsSingle
+SumWords,INTEGER,Announcement,"Words in the Item 1.01 text, without its heading and title.","the filing is not an 8-K, or its Item 1.01 text could not be recovered",SumWords
+SumSentences,INTEGER,Announcement,Sentences in that text.,"the filing is not an 8-K, or its Item 1.01 text could not be recovered",SumSentences
+SumComplex,INTEGER,Announcement,Words of three or more syllables in that text.,"the filing is not an 8-K, or its Item 1.01 text could not be recovered",SumComplex
+SumFog,DOUBLE,Announcement,Gunning Fog index of that text: 0.4 x (words per sentence + 100 x share of complex words).,"the filing is not an 8-K, or its Item 1.01 text could not be recovered",SumFog
+SumUncertain,INTEGER,Announcement,Words of the Loughran-McDonald uncertainty list in that text.,"the filing is not an 8-K, or its Item 1.01 text could not be recovered",SumUncertain
+SumNumbers,INTEGER,Announcement,Numeric tokens in that text.,"the filing is not an 8-K, or its Item 1.01 text could not be recovered",SumNumbers
+SumDollars,INTEGER,Announcement,"Dollar figures in that text: a currency sign, a number and an optional scale word.","the filing is not an 8-K, or its Item 1.01 text could not be recovered",SumDollars
+SumPercents,INTEGER,Announcement,Percentages in that text.,"the filing is not an 8-K, or its Item 1.01 text could not be recovered",SumPercents
+SumAttached,INTEGER,Announcement,1 where the filing carried an Exhibit 10: 1 on every row of this table. Summaries holds the announcements without one.,"the filing is not an 8-K, or its Item 1.01 text could not be recovered",SumAttached
+SumBoiler,DOUBLE,Announcement,Share of the text's four-word phrases that occur in the filings of at least one in a hundred distinct filers (after Lang and Stice-Lawrence 2015).,"the filing is not an 8-K, or its Item 1.01 text could not be recovered",SumBoiler
+SumLagDays,INTEGER,Announcement,"Filing date minus the first agreement date in that text, in calendar days; negative where the filing precedes the date.",the text names no agreement date,SumLagDays
+BertClassDetailed,VARCHAR,Classification,"Contract type, twelve categories, from the fine-tuned Legal-BERT classifier (256-token model). Identical to Class.",the attachment holds no text the classifiers could read (741 attachments),BertClassDetailed
+BertClassDetailedProb,DOUBLE,Classification,The classifier's probability for that category.,the attachment holds no text the classifiers could read (741 attachments),BertClassDetailedProb
+BertClassDetailed2,VARCHAR,Classification,The classifier's second most likely category.,the attachment holds no text the classifiers could read (741 attachments),BertClassDetailed2
+BertClassDetailed2Prob,DOUBLE,Classification,Its probability.,the attachment holds no text the classifiers could read (741 attachments),BertClassDetailed2Prob
+KwClassDetailed,VARCHAR,Classification,"Contract type from the keyword classifier, an independent second instrument.","no keyword applied, or two categories tied",KwClassDetailed
+KwClassDetailedPower,DOUBLE,Classification,Strength of the keyword that decided it: the lower bound of the Wilson interval of its precision in the labelled sample.,as KwClassDetailed,KwClassDetailedPower
+KwClassDetailedTerm,VARCHAR,Classification,The keyword that decided it.,as KwClassDetailed,KwClassDetailedTerm
+ClassDetailedFlag,VARCHAR,Classification,"confirmed where the keyword classifier agrees with the transformer, contradicted where it disagrees, unchecked where it gave no category.",the attachment holds no text the classifiers could read (741 attachments),ClassDetailedFlag
+BertClassBroad,VARCHAR,Classification,"Broad contract type, seven categories, from an additional classifier trained on the broad labels directly (256-token model). Identical to ClassBroad. The paper uses ClassRollup.",the attachment holds no text the classifiers could read (741 attachments),BertClassBroad
+BertClassBroadProb,DOUBLE,Classification,That classifier's probability for its category.,the attachment holds no text the classifiers could read (741 attachments),BertClassBroadProb
+BertClassBroad2,VARCHAR,Classification,Its second most likely broad category.,the attachment holds no text the classifiers could read (741 attachments),BertClassBroad2
+BertClassBroad2Prob,DOUBLE,Classification,Its probability.,the attachment holds no text the classifiers could read (741 attachments),BertClassBroad2Prob
+KwClassBroad,VARCHAR,Classification,Broad contract type from the keyword classifier.,"no keyword applied, or two categories tied",KwClassBroad
+KwClassBroadPower,DOUBLE,Classification,Strength of the deciding keyword (Wilson lower bound of its precision).,as KwClassBroad,KwClassBroadPower
+KwClassBroadTerm,VARCHAR,Classification,The deciding keyword.,as KwClassBroad,KwClassBroadTerm
+ClassBroadFlag,VARCHAR,Classification,"confirmed, contradicted or unchecked, as ClassDetailedFlag, for the broad categories.",the attachment holds no text the classifiers could read (741 attachments),ClassBroadFlag
+BertAmendType,VARCHAR,Classification,"Original or Amended, from the fine-tuned classifier (256-token model). Identical to AmendType.",the attachment holds no text the classifiers could read (741 attachments),BertAmendType
+BertAmendTypeProb,DOUBLE,Classification,The classifier's probability for that call.,the attachment holds no text the classifiers could read (741 attachments),BertAmendTypeProb
+BertAmendType2,VARCHAR,Classification,The other of the two categories.,the attachment holds no text the classifiers could read (741 attachments),BertAmendType2
+BertAmendType2Prob,DOUBLE,Classification,Its probability: one minus BertAmendTypeProb.,the attachment holds no text the classifiers could read (741 attachments),BertAmendType2Prob
+KwAmendType,VARCHAR,Classification,"Original or Amended from the keyword classifier: Amended where an amendment term applies, Original otherwise.",the attachment holds no text the classifiers could read (741 attachments),KwAmendType
+KwAmendTypePower,DOUBLE,Classification,Strength of the deciding term (Wilson lower bound of its precision); 0 where no amendment term applies.,the attachment holds no text the classifiers could read (741 attachments),KwAmendTypePower
+KwAmendTypeTerm,VARCHAR,Classification,The deciding term.,no amendment term applies,KwAmendTypeTerm
+AmendTypeFlag,VARCHAR,Classification,"confirmed or contradicted, as ClassDetailedFlag, for original against amendment.",the attachment holds no text the classifiers could read (741 attachments),AmendTypeFlag
+HierConsistent,BOOLEAN,Classification,TRUE where ClassRollup equals ClassBroad: the two classifiers agree on the broad category.,the attachment holds no text the classifiers could read (741 attachments),HierConsistent
+Class,VARCHAR,Classification,"Contract type, twelve categories: the label the paper uses.",the attachment holds no text the classifiers could read (741 attachments),Class
+ClassRollup,VARCHAR,Classification,"Broad contract type, seven categories: the broad category of Class, as the paper uses it. The part of Class before the colon; Customer / Supplier and R&D roll up to Purchases and Sales; Leases, Licenses and Other stand alone.",the attachment holds no text the classifiers could read (741 attachments),ClassRollup
+ClassBroad,VARCHAR,Classification,"Broad contract type from the additional broad classifier (see BertClassBroad). Where it differs from ClassRollup, HierConsistent is FALSE.",the attachment holds no text the classifiers could read (741 attachments),ClassBroad
+AmendType,VARCHAR,Classification,Original or Amended: the label the paper uses.,the attachment holds no text the classifiers could read (741 attachments),AmendType
+nUniSpellingsNaive,INTEGER,Parties,"Distinct organisation names found in the contract, before the spellings of one party were merged.",never,nUniSpellingsNaive
+nUniRegistrant,INTEGER,Parties,"Parties identified as the registrant: 1 where the registrant was found, 0 otherwise.",never,nUniRegistrant
+nUniCofiler,INTEGER,Parties,Parties identified as another registrant of the same filing.,never,nUniCofiler
+nUniCounterparty,INTEGER,Parties,Distinct counterparties: parties named near the registrant that are not the registrant.,never,nUniCounterparty
+nUniSignatory,INTEGER,Parties,"Distinct parties that appear only in the last tenth of the contract, typically its signature pages.",never,nUniSignatory
+nUniOther,INTEGER,Parties,Distinct parties named elsewhere in the contract.,never,nUniOther
+HasNoParty,INTEGER,Parties,1 where no organisation was found in the contract; every party count is 0 then.,never,HasNoParty
+nUniStateNaive,INTEGER,Geography,"Distinct US states named anywhere outside governing-law clauses, attached to a party or not.",never,nUniStateNaive
+nUniCountryNaive,INTEGER,Geography,"Distinct countries, on the same basis. See the known issue on Columbia.",never,nUniCountryNaive
+nUniStateRegistrant,INTEGER,Geography,"Distinct US states near the registrant's mentions. Above 1 means several candidate places, not several registrants.",never,nUniStateRegistrant
+nUniCountryRegistrant,INTEGER,Geography,Distinct countries near the registrant's mentions.,never,nUniCountryRegistrant
+nUniStateCounterparty,INTEGER,Geography,Distinct US states near any counterparty's mentions.,never,nUniStateCounterparty
+nUniCountryCounterparty,INTEGER,Geography,Distinct countries near any counterparty's mentions.,never,nUniCountryCounterparty
+LawJurisdiction,VARCHAR,Law,"Every jurisdiction the contract's law clauses name, separated by |, in document order. None is picked as the governing one.",no law clause names a place,LawJurisdiction
+LawJurisdictionLevel,VARCHAR,Law,"State or Country for each jurisdiction, in the same order.",as LawJurisdiction,LawJurisdictionLevel
+LawKind,VARCHAR,Law,"The wording that identified each clause, in the same order: GovernedBy, GovernedByConstrued, ConstruedAccordance, GoverningLaw, LawsOfState, LawsOfCommonwealth or SubmitJurisdiction. LawsOfState also matches 'organized under the laws of', which states incorporation rather than governing law.",as LawJurisdiction,LawKind
+nLawClause,INTEGER,Law,"Law clauses found, whether or not they name a place.",never,nLawClause
+nLawSelfRef,INTEGER,Law,"Law clauses that name no place by design, such as 'the laws of the state in which the premises are located'.",never,nLawSelfRef
+nUniJurisdiction,INTEGER,Law,Distinct jurisdictions named.,never,nUniJurisdiction
+DateStart,DATE,Dates,"Start of the contract: the latest date in the text on or before the filing date, or the filing date where there is none.",the attachment holds no readable text,DateStart
+StartSource,VARCHAR,Dates,"signed where DateStart is a date from the text, filed where it is the filing date.",as DateStart,StartSource
+DateEnd,DATE,Dates,"End of the contract, from the first rule that applies: a stated term, an open-ended clause, a date next to an end cue (expires, through, maturity), or the latest future date.",no rule applies,DateEnd
+DurationYears,DOUBLE,Dates,DateEnd minus DateStart in years. A duration above 30 years is left missing rather than capped; DurationDropped says so.,"no end, or longer than 30 years (see DurationDropped)",DurationYears
+DurationSource,VARCHAR,Dates,"Which rule set DateEnd: term, open, cue, maxdate, or none.",as DateStart,DurationSource
+DurationDropped,VARCHAR,Dates,"kept, capped (longer than 30 years) or no end: why DurationYears is present or missing.",as DateStart,DurationDropped
+TermYears,DOUBLE,Dates,"The longest term the contract states, in years. Not capped.",the contract states no term,TermYears
+TermKind,VARCHAR,Dates,"The phrasing of that term: UnitPeriod, PeriodOf, Anniversary, ContinueFor or UnitTerm (see term_spans).",the contract states no term,TermKind
+DateEndNaive,DATE,Dates,"The latest future date the contract mentions, whatever it is mentioned for.",the contract names no future date,DateEndNaive
+NaiveYears,DOUBLE,Dates,DateEndNaive minus DateStart in years. Not capped.,as DateEndNaive,NaiveYears
+nRedactExplicit,INTEGER,Redactions,"Bracketed markers that name confidential treatment, such as [Confidential Treatment Requested].",never,nRedactExplicit
+nRedactSymbol,INTEGER,Redactions,"Bracketed markers holding a symbol, such as [*] or [ ].",never,nRedactSymbol
+nRedactBlank,INTEGER,Redactions,Empty brackets.,never,nRedactBlank
+nOmitExplicit,INTEGER,Redactions,"[Intentionally Omitted] and its variants: sections left out on purpose, not text withheld from a reader.",never,nOmitExplicit
+nOmitSymbol,INTEGER,Redactions,"The same kind of omission in symbol form, such as [.].",never,nOmitSymbol
+nRedactBare,INTEGER,Redactions,"Runs of asterisks without brackets. The least reliable marker, since a row of asterisks can also be a separator line.",never,nRedactBare

@@ -1,0 +1,8 @@
+Column,Type,Block,Meaning,Missing,StataName
+DocID,VARCHAR,Document,"The document: DocID of Contracts for Exhibit 10 attachments, DocID of Summaries for 8-K and 8-K/A reports, OrderDocID of CtoOrders for confidential treatment orders.",never,DocID
+YQ,VARCHAR,Document,"Filing year and quarter, such as 2012-1.",never,YQ
+DocExt,VARCHAR,Document,"File type as filed: htm, html, txt or pdf; a few in upper case.",never,DocExt
+ErrParse,BOOLEAN,Document,TRUE where the text could not be extracted (two PDF attachments).,never,ErrParse
+MsgParse,VARCHAR,Document,The parser's error message.,ErrParse is FALSE,MsgParse
+HTML,VARCHAR,Document,"The document as retrieved from EDGAR: the markup of an HTML filing, the plain text of a .txt filing.",see the README for PDF documents,HTML
+TextRaw,VARCHAR,Document,"The document's text, exactly as every variable, span offset and model read it. In some HTML documents, quotation marks, apostrophes and dashes appear as control characters (U+0080 to U+009F); the README gives a one-line repair that keeps every offset valid.",the document holds no text,TextRaw

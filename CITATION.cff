@@ -1,0 +1,48 @@
+cff-version: 1.2.0
+message: >-
+  If you use the data or the methods, please cite the paper below and the version of the data
+  package you used.
+type: software
+title: "matcon-data-and-methods: Data and methods for The analysis of material contracts"
+abstract: >-
+  The website, and the sample its examples run on, for an open database of the material contracts
+  (Exhibit 10 attachments) filed with the SEC between 1999 and 2024: what the database holds, how
+  to get each part of it, and the methods behind it, classification and entity extraction, each
+  with a worked example.
+authors:
+  - family-names: Großkopf
+    given-names: Ann-Kristin
+    affiliation: University of Amsterdam
+  - family-names: Sehn
+    given-names: Victor
+    affiliation: LMU Munich
+  - family-names: Uckert
+    given-names: Matthias
+    affiliation: University of Amsterdam
+repository-code: "https://github.com/MatthiasUckert/matcon-data-and-methods"
+url: "https://matthiasuckert.github.io/matcon-data-and-methods/"
+license:
+  - MIT
+  - CC-BY-4.0
+keywords:
+  - material contracts
+  - SEC EDGAR
+  - Exhibit 10
+  - disclosure
+  - textual analysis
+  - open science
+preferred-citation:
+  type: article
+  title: "The analysis of material contracts: Use of SEC contractual data in accounting research"
+  authors:
+    - family-names: Großkopf
+      given-names: Ann-Kristin
+      affiliation: University of Amsterdam
+    - family-names: Sehn
+      given-names: Victor
+      affiliation: LMU Munich
+    - family-names: Uckert
+      given-names: Matthias
+      affiliation: University of Amsterdam
+  status: submitted
+  year: 2026

@@ -1,0 +1,10 @@
+Column,Type,Block,Meaning,Missing,StataName
+DocID,VARCHAR,Place,The contract (its primary copy). Joins to Contracts on DocID.,never,DocID
+HashDocument,VARCHAR,Place,The attachment; joins to every registrant copy in Contracts.,never,HashDocument
+GeoLevel,VARCHAR,Place,"What the place name resolved to: Country, State, County or City.",never,GeoLevel
+GeoState,VARCHAR,Place,"The US state, where the place gives one.",the place is outside the US or names no state,GeoState
+GeoCountryIso,VARCHAR,Place,ISO 3166 alpha-3 country code; USA for US places. Count countries on this column.,the place resolved to no country,GeoCountryIso
+GeoCountry,VARCHAR,Place,"The country's name as found in the text. One country can appear under several spellings, including other languages.",as GeoCountryIso,GeoCountry
+PartyRole,VARCHAR,Place,"The party the place was attached to: registrant, cofiler, counterparty, signatory, other, or none.",never,PartyRole
+InLawClause,INTEGER,Place,"1 where the place sits in a governing-law clause, so it is a jurisdiction rather than a location.",never,InLawClause
+nMentions,INTEGER,Place,How often the contract mentions this place in this role.,never,nMentions

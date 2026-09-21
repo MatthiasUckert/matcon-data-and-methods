@@ -1,0 +1,9 @@
+Column,Type,Block,Meaning,Missing,StataName
+DocID,VARCHAR,Term,The contract (its primary copy). Joins to Contracts on DocID.,never,DocID
+HashDocument,VARCHAR,Term,The attachment; joins to every registrant copy in Contracts.,never,HashDocument
+Family,VARCHAR,Term,"The term family searched for: Pandemic, Disruption, RateReform, Regulation or Boilerplate.",never,Family
+nHits,INTEGER,Term,Occurrences of any term of the family; a term found twice counts twice.,never,nHits
+nTerms,INTEGER,Term,Distinct terms of the family found.,never,nTerms
+HasTerm,INTEGER,Term,1 where nHits is positive.,never,HasTerm
+FirstPos,DOUBLE,Term,"Relative position of the first hit: 0 at the start of the text, 1 at its end.",nHits is 0,FirstPos
+PerKWords,DOUBLE,Term,nHits per thousand words of the contract.,the contract has no word count,PerKWords

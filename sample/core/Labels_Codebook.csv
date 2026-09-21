@@ -1,0 +1,10 @@
+Column,Type,Block,Meaning,Missing,StataName
+DocID,VARCHAR,Label,The labelled contract. Joins to Contracts on DocID.,never,DocID
+DocDesc,VARCHAR,Label,"The filer's description of the exhibit, as in Contracts.",the filer gave none,DocDesc
+DocName,VARCHAR,Label,"EDGAR's file name of the attachment, as in Contracts.",never,DocName
+ClassBroad,VARCHAR,Label,The broad category the annotators gave: the roll-up of ClassDetailed.,never,ClassBroad
+ClassDetailed,VARCHAR,Label,"The detailed category the annotators gave, one of twelve.",never,ClassDetailed
+ClassDetailed2,VARCHAR,Label,"A second detailed category, where the annotators judged the contract to belong to two.",the contract has one category,ClassDetailed2
+AmendType,VARCHAR,Label,"Original or Amended, as the annotators judged.",never,AmendType
+LabelRound,VARCHAR,Label,"The labelling round, Round1 or Round2 (Online Appendix C).",never,LabelRound
+Fold,INTEGER,Label,"The cross-validation fold, 1 to 5, in which the contract was held out when the classifiers were scored.",never,Fold

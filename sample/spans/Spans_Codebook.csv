@@ -1,0 +1,65 @@
+File,Column,Type,Block,Meaning,Missing,StataName
+org_mentions.parquet,DocID,VARCHAR,Mention,The contract (its primary copy). Joins to Contracts on DocID.,never,DocID
+org_mentions.parquet,PartyKey,VARCHAR,Party,"Key of the party after the spellings of one organisation were merged: one party, one key.",placeholder row of a contract without organisation,PartyKey
+org_mentions.parquet,PartyName,VARCHAR,Party,"The party's name, in the spelling chosen to name it.",as PartyKey,PartyName
+org_mentions.parquet,PartyRole,VARCHAR,Party,"The party's role: registrant, cofiler, counterparty, signatory, other, or none on the placeholder row of a contract where no organisation was found.",never,PartyRole
+org_mentions.parquet,MatchKind,VARCHAR,Party,"How the party was matched to the registrant: exact, prefix, fallback, cofiler (another registrant of the filing), or none.",never,MatchKind
+org_mentions.parquet,NameFrom,VARCHAR,Party,Which spelling names the party: matched member (the spelling matched to the registrant) or most mentioned.,as PartyKey,NameFrom
+org_mentions.parquet,MergeKind,VARCHAR,Party,"How the spellings were merged into the party: alone, prefix or fragment.",as PartyKey,MergeKind
+org_mentions.parquet,SpanKey,VARCHAR,Mention,Normalised key of this spelling before merging; nUniSpellingsNaive in Contracts counts these.,as PartyKey,SpanKey
+org_mentions.parquet,SpanText,VARCHAR,Mention,The mention as written in TextRaw.,as PartyKey,SpanText
+org_mentions.parquet,MentionStart,INTEGER,Mention,0-based offset of the span's first character in TextRaw.,as PartyKey,MentionStart
+org_mentions.parquet,MentionStop,INTEGER,Mention,"Offset one past the span's last character, so the span is TextRaw[Start:Stop] in Python and stri_sub(TextRaw, Start + 1, Stop) in R.",as PartyKey,MentionStop
+org_mentions.parquet,IsFirst,BOOLEAN,Mention,TRUE on the party's first mention in the contract.,as PartyKey,IsFirst
+places_geo.parquet,DocID,VARCHAR,Place,The contract (its primary copy). Joins to Contracts on DocID.,never,DocID
+places_geo.parquet,PlaceStart,DOUBLE,Place,0-based offset of the span's first character in TextRaw. Stored as a whole-numbered double.,never,PlaceStart
+places_geo.parquet,PlaceStop,INTEGER,Place,"Offset one past the span's last character, so the span is TextRaw[Start:Stop] in Python and stri_sub(TextRaw, Start + 1, Stop) in R.",never,PlaceStop
+places_geo.parquet,PlaceText,VARCHAR,Place,The place name as written in TextRaw.,never,PlaceText
+places_geo.parquet,GeoUnit,VARCHAR,Place,The gazetteer's name for what the place resolved to.,never,GeoUnit
+places_geo.parquet,GeoLevel,VARCHAR,Place,"What it resolved to: Country, State, County or City.",never,GeoLevel
+places_geo.parquet,GeoState,VARCHAR,Place,"The US state, where the place gives one.",the place is outside the US or names no state,GeoState
+places_geo.parquet,GeoCounty,VARCHAR,Place,"The county of a US city, for reading.",the place is not a US city,GeoCounty
+places_geo.parquet,GeoCountryIso,VARCHAR,Place,ISO 3166 alpha-3 country code; USA for US places.,the place resolved to no country,GeoCountryIso
+places_geo.parquet,GeoCountry,VARCHAR,Place,"The country's name; spellings vary, count on GeoCountryIso.",as GeoCountryIso,GeoCountry
+places_geo.parquet,GeoStateFrom,VARCHAR,Place,"How the US state was found: named (the place is a state), unique (a city in one state only), named nearby (a state named next to it), unresolved, or none.",never,GeoStateFrom
+places_geo.parquet,Ambiguous,BOOLEAN,Place,"TRUE where the name exists under more than one parent in the gazetteer, such as a city name in several states.",never,Ambiguous
+places_geo.parquet,PartyKey,VARCHAR,Party,"The party the place was attached to, as in org_mentions.",the place attached to no party,PartyKey
+places_geo.parquet,MentionStart,INTEGER,Party,Offset of the party mention the place was attached through.,as PartyKey,MentionStart
+places_geo.parquet,MentionIsFirst,BOOLEAN,Party,TRUE where that mention is the party's first.,as PartyKey,MentionIsFirst
+places_geo.parquet,DistToParty,INTEGER,Party,Characters from the end of that mention to the place.,as PartyKey,DistToParty
+places_geo.parquet,Attached,BOOLEAN,Party,TRUE where the place falls within reach of a party mention.,never,Attached
+places_geo.parquet,InLawClause,BOOLEAN,Place,"TRUE where the place sits in a governing-law clause, so it is a jurisdiction and never attached to a party.",never,InLawClause
+law_clauses.parquet,DocID,VARCHAR,Clause,The contract (its primary copy). Joins to Contracts on DocID.,never,DocID
+law_clauses.parquet,LawStart,DOUBLE,Clause,0-based offset of the span's first character in TextRaw. Stored as a whole-numbered double.,never,LawStart
+law_clauses.parquet,LawStop,INTEGER,Clause,"Offset one past the span's last character, so the span is TextRaw[Start:Stop] in Python and stri_sub(TextRaw, Start + 1, Stop) in R.",never,LawStop
+law_clauses.parquet,LawKind,VARCHAR,Clause,"The wording that identified the clause: GoverningLaw (a heading), GovernedBy, GovernedByConstrued, ConstruedAccordance, LawsOfState, LawsOfCommonwealth, SubmitJurisdiction or SelfReferential.",never,LawKind
+law_clauses.parquet,Jurisdiction,VARCHAR,Clause,The state or country the clause names.,the clause names none,Jurisdiction
+law_clauses.parquet,JurisdictionLevel,VARCHAR,Clause,State or Country.,as Jurisdiction,JurisdictionLevel
+date_spans.parquet,DocID,VARCHAR,Date,The contract (its primary copy). Joins to Contracts on DocID.,never,DocID
+date_spans.parquet,DateStart,INTEGER,Date,0-based offset of the span's first character in TextRaw.,never,DateStart
+date_spans.parquet,DateStop,INTEGER,Date,"Offset one past the span's last character, so the span is TextRaw[Start:Stop] in Python and stri_sub(TextRaw, Start + 1, Stop) in R.",never,DateStop
+date_spans.parquet,DateText,VARCHAR,Date,The date as written in TextRaw.,never,DateText
+date_spans.parquet,DateValue,DATE,Date,The calendar date it stands for.,never,DateValue
+date_spans.parquet,Parsed,BOOLEAN,Date,TRUE on every row: only dates that could be read are kept.,never,Parsed
+date_spans.parquet,GapDays,INTEGER,Date,Days from the filing date to this date; negative before it.,never,GapDays
+date_spans.parquet,Side,VARCHAR,Date,"before filing, same day or after filing.",never,Side
+date_spans.parquet,HasEndCue,BOOLEAN,Date,"TRUE where an end cue (ending, through, until, terminat..., expir..., maturit...) stands in the 160 characters before the date.",never,HasEndCue
+date_spans.parquet,CueHit,VARCHAR,Date,Which cue it was.,HasEndCue is FALSE,CueHit
+term_spans.parquet,DocID,VARCHAR,Period,The contract (its primary copy). Joins to Contracts on DocID.,never,DocID
+term_spans.parquet,TermStart,INTEGER,Period,0-based offset of the span's first character in TextRaw.,never,TermStart
+term_spans.parquet,TermStop,INTEGER,Period,"Offset one past the span's last character, so the span is TextRaw[Start:Stop] in Python and stri_sub(TextRaw, Start + 1, Stop) in R.",never,TermStop
+term_spans.parquet,TermText,VARCHAR,Period,The period as written in TextRaw.,never,TermText
+term_spans.parquet,TermKind,VARCHAR,Period,"The phrasing that matched: UnitPeriod ('five (5) years'), PeriodOf ('a period of five years'), Anniversary ('the fifth anniversary'), ContinueFor ('continue for five years'), UnitTerm ('a five-year term') or OpenEnded.",never,TermKind
+term_spans.parquet,TermN,DOUBLE,Period,The number the contract wrote.,IsOpen is TRUE,TermN
+term_spans.parquet,TermUnit,VARCHAR,Period,"The unit it wrote: day, week, month or year; open for an open-ended clause.",never,TermUnit
+term_spans.parquet,TermYears,DOUBLE,Period,The period in years.,IsOpen is TRUE,TermYears
+term_spans.parquet,IsOpen,BOOLEAN,Period,TRUE where the clause states the contract has no fixed length.,never,IsOpen
+term_spans.parquet,PeriodKind,VARCHAR,Period,"What the period governs, from the word before it: term, notice, cure, survival or other. Descriptive only; no variable uses it.",never,PeriodKind
+term_spans.parquet,PeriodCue,VARCHAR,Period,The word that set PeriodKind.,PeriodKind is other,PeriodCue
+redact_spans.parquet,DocID,VARCHAR,Marker,The contract (its primary copy). Joins to Contracts on DocID.,never,DocID
+redact_spans.parquet,MarkStart,INTEGER,Marker,0-based offset of the span's first character in TextRaw.,never,MarkStart
+redact_spans.parquet,MarkStop,INTEGER,Marker,"Offset one past the span's last character, so the span is TextRaw[Start:Stop] in Python and stri_sub(TextRaw, Start + 1, Stop) in R.",never,MarkStop
+redact_spans.parquet,MarkText,VARCHAR,Marker,The marker as written in TextRaw.,never,MarkText
+redact_spans.parquet,Kind,VARCHAR,Marker,"RedactExplicit, RedactSymbol, RedactBlank, RedactBare, OmitExplicit or OmitSymbol: the classes the redaction counts in Contracts use.",never,Kind
+redact_spans.parquet,Bracketed,BOOLEAN,Marker,"TRUE for the five bracketed kinds, FALSE for RedactBare.",never,Bracketed
+redact_spans.parquet,Withheld,BOOLEAN,Marker,"TRUE where text was withheld (a redaction), FALSE for an omission placeholder such as [Intentionally Omitted].",never,Withheld

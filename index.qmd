@@ -1,0 +1,99 @@
+---
+title: "The analysis of material contracts"
+subtitle: "Data and methods"
+---
+
+```{r}
+#| label: setup
+#| include: false
+source("_common.R")
+composition <- sample_composition()
+if (length(composition$per_category) != 1) {
+  stop("The sample no longer draws the same number of labelled contracts from each category")
+}
+contracts_codebook <- readr::read_csv(
+  "sample/core/Contracts_Codebook.csv",    # the package's own codebook, which lists the paper's sample selection
+  col_types = readr::cols(.default = "c")  # every column as text
+)
+paper_years <- stringi::stri_match_first_regex(
+  contracts_codebook$Meaning[contracts_codebook$Column == "SampleStepDesc"],  # the selection steps in words
+  "outside ([0-9]{4})-([0-9]{4})"                                             # the filing years the sample keeps
+)
+if (nrow(paper_years) != 1 || anyNA(paper_years)) {
+  stop("The Contracts codebook no longer names the filing years of the paper's sample in SampleStepDesc")
+}
+```
+
+This site publishes the data and the methods of the paper below. The data package holds the material contracts, Exhibit
+10 to a filing, that registrants filed with the SEC with forms 10-K, 10-Q, 8-K, 20-F, S-1, S-4, F-1 and F-4 and their
+amendments between {{< var data.first_year >}} and {{< var data.last_year >}}: `r fmt_int(num("rows.contracts"))`
+registrant copies of these attachments, classified by type, with the parties, places, law clauses, dates, terms
+and redactions extracted from their text, and the documents themselves. The paper's sample starts in
+`r paper_years[1, 2]`.
+
+## Four ways in
+
+- **[Data](data.qmd).** What each part of the data package holds, the tables and their columns, and three things to
+  know before counting anything.
+- **[Methods](methods.qmd).** How the contracts were classified and their entities extracted, and how to turn the
+  published spans into variables of your own, each with an example on the sample.
+- **[Stata](stata.qmd).** Where the paper's Stata code will be published, what it needs, and how to read the tables
+  and slice a span in Stata.
+- **[Code](reproduce.qmd).** Where the code that built the database is, and what needs a WRDS subscription.
+
+Every R example on this site runs, from the root of a clone of the [site's repository]({{< var site.repository >}}),
+on the sample in its `sample/` folder: `r composition$per_category` labelled contracts from each of the
+`r composition$categories` detailed categories, `r composition$rejected` rejected attachments and all
+`r composition$copy_rows` registrant copies of `r composition$copy_attachments` attachments whose filing names several
+registrants.
+
+## The parts of the data package
+
+```{r}
+#| label: parts-overview
+#| echo: false
+bytes_keys <- paste0(
+  "folder.bytes.",  # the size of a part in package_numbers.csv
+  parts$Part        # one key per part
+)
+files_keys <- paste0(
+  "folder.files.",  # the number of files of a part in package_numbers.csv
+  parts$Part        # one key per part
+)
+tibble::tibble(
+  Part = sprintf(              # the part, linked to its section on the data page
+    "[%s](data.qmd#part-%s)",  # the section of the part on the data page
+    parts$Title,               # as data/parts.csv names it
+    parts$Part                 # the anchor of that section
+  ),
+  Size = fmt_bytes(vapply(  # what the download costs
+    bytes_keys,             # read, never typed
+    num,                    # one figure from package_numbers.csv
+    numeric(1)              # one figure per part
+  )),
+  Files = vapply(  # how many files the part holds
+    files_keys,    # read, never typed
+    num,           # one figure from package_numbers.csv
+    numeric(1)     # one figure per part
+  ),
+  Status = part_state(  # whether it can be downloaded yet
+    parts$Status,       # published, request or planned
+    parts$Link          # a link only where the part is published
+  )
+) |>
+  knitr::kable()
+```
+
+The package is version {{< var data.version >}}: `r fmt_bytes(published_total("bytes"))` in
+`r fmt_int(published_total("files"))` files, the parts above and a README at the root, beside a checksum manifest. The
+parts are shared from {{< var data.archive >}}, each with its own download link;
+[getting a part](data.qmd#getting-a-part) says how to check a download.
+
+## The paper and how to cite it
+
+{{< var paper.authors >}}. {{< var paper.title >}} ({{< var paper.status >}}).`r doi_text(vars$paper$doi)`
+
+Please cite the paper, and the data package with its version, {{< var data.version >}}.`r doi_text(vars$data$archive_doi)`
+The tables and span files are licensed under {{< var data.licence >}} and the classifiers
+under {{< var data.licence_models >}}; [the data page](data.qmd#licences) says what applies to the documents and the
+extraction image. Questions and requests to remove material go to {{< var site.contact >}}.

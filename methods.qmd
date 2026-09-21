@@ -1,0 +1,489 @@
+---
+title: "The methods"
+description: >-
+  How the contracts were classified and their entities extracted, and how to turn the published spans into
+  variables of your own. Each method comes with a worked example on the sample.
+---
+
+```{r}
+#| label: setup
+#| include: false
+source("_common.R")
+comp <- sample_composition()
+n_broad <- dplyr::n_distinct(arrow::read_parquet("sample/core/Labels.parquet")$ClassBroad)
+n_span_files <- length(list.files(
+  "sample/spans",          # the span files of the sample
+  pattern = "\\.parquet$"  # the codebook beside them is not a span file
+))
+
+# The terms the amendment lexicon lists for Original. The page says the amendment rule never uses them, so the
+# render stops if a published keyword label was decided by one.
+keyword_setup <- arrow::read_parquet("sample/core/KeywordTerms.parquet")
+original_terms <- keyword_setup$Term[
+  keyword_setup$Task == "AmendType" &  # the amendment task
+    keyword_setup$Class == "Original"  # the terms that point to an original
+]
+if (any(arrow::read_parquet("sample/core/Contracts.parquet")$KwAmendTypeTerm %in% original_terms)) {
+  stop("A KwAmendTypeTerm of the sample is an Original term; the keyword section misdescribes the rule")
+}
+```
+
+Every example on this page reads the sample in `sample/`: `r comp$rows` rows of the contracts table. Of these,
+`r comp$labelled` are labelled contracts, `r comp$per_category` from each of the `r comp$categories` detailed
+categories; `r comp$rejected` are attachments the text screen rejected; and `r comp$copy_rows` are the registrant
+copies of `r comp$copy_attachments` attachments whose filing names more than one registrant. The sample shows how the
+files work, not what the corpus looks like.
+
+## Classification {#classification}
+
+Each contract carries three labels, each from a fine-tuned Legal-BERT model (`nlpaueb/legal-bert-base-uncased`) of
+its own: a detailed category out of `r comp$categories`, a broad category out of `r n_broad`, and whether the
+document is an original contract or an amendment. A model reads the first 256 or the first 512 tokens of a document
+and ignores the rest. Each task was trained at both lengths, which makes the `r num("models.count")` models of
+[the classifiers part](data.qmd#part-models).
+
+The paper's contract type is `Class`, the detailed category from the model `ClassDetailed_L256`, and its broad type
+is `ClassRollup`, the roll-up of `Class` to the broad categories. `ClassBroad` comes from an additional model
+trained on the broad labels directly; where it differs from the roll-up, `HierConsistent` is `FALSE`.
+
+Cross-validation over five folds of the labelled contracts selected a configuration for each task; for the broad
+task it selected the 512-token model. The published labels come from the 256-token models in all three tasks.
+
+The detailed categories and the broad category each rolls up to, as the contracts table publishes them:
+
+```{r}
+#| label: class-taxonomy
+contracts <- arrow::read_parquet("sample/core/Contracts.parquet")
+
+contracts |>
+  dplyr::distinct(
+    ClassRollup,  # the broad parent the paper uses
+    Class         # the detailed category under it
+  ) |>
+  dplyr::arrange(
+    ClassRollup,  # parents in alphabetical order
+    Class         # and their children below them
+  )
+```
+
+### Worked example {#classification-example}
+
+The published labels sit in the contracts table; the reference labels of the labelled contracts sit in the labelled
+sample. The annotators gave them with [rLabelDocs]({{< var code.rlabeldocs >}}), a Shiny application for labelling
+documents, and `LabelRound` records the labelling round, `Round1` or `Round2` (Online Appendix C of the paper).
+
+```{r}
+#| label: class-read
+labels <- arrow::read_parquet("sample/core/Labels.parquet")
+labelled <- contracts |>
+  dplyr::filter(DocID %in% labels$DocID)
+```
+
+The published detailed categories of the labelled contracts. The reference labels put `r comp$per_category` of them
+in each category, so a count away from `r comp$per_category` is a document the detailed model placed elsewhere:
+
+```{r}
+#| label: class-distribution
+labelled |>
+  dplyr::count(Class)
+```
+
+The roll-up the paper uses is published beside the detailed label, as `ClassRollup`; it does not have to be rebuilt
+from a map. Against the broad model's own label, on every row of the sample:
+
+```{r}
+#| label: class-rollup
+contracts |>
+  dplyr::count(
+    ClassRollup,  # the broad category as the paper uses it, rolled up from Class
+    ClassBroad    # the label of the model trained on the broad labels
+  )
+```
+
+The two agree except on `r sum(!contracts$HierConsistent)` of the `r nrow(contracts)` rows, which are the rows where
+`HierConsistent` is `FALSE`:
+
+```{r}
+#| label: class-hierconsistent
+contracts |>
+  dplyr::count(
+    HierConsistent,                    # FALSE where the broad model departs from the roll-up
+    Agree = ClassRollup == ClassBroad  # the comparison the flag stands for
+  )
+```
+
+The published labels against the reference labels, task by task and by labelling round:
+
+```{r}
+#| label: class-agreement
+compared <- labels |>
+  dplyr::select(
+    DocID,                          # the document
+    LabelDetailed = ClassDetailed,  # the reference detailed category
+    LabelBroad = ClassBroad,        # the reference broad category
+    LabelAmend = AmendType,         # the reference original or amendment
+    LabelRound                      # the labelling round
+  ) |>
+  dplyr::inner_join(
+    contracts,    # the published labels
+    by = "DocID"  # one row per labelled contract in both
+  )
+
+compared |>
+  dplyr::summarise(
+    Documents = dplyr::n(),                     # documents compared
+    Detailed = sum(Class == LabelDetailed),     # agreement on the detailed categories
+    RollUp = sum(ClassRollup == LabelBroad),    # the paper's broad label against the reference
+    BroadModel = sum(ClassBroad == LabelBroad), # the separate broad model against the same reference
+    Amendment = sum(AmendType == LabelAmend),   # agreement on original against amendment
+    .by = LabelRound                            # Round1 or Round2
+  )
+```
+
+The labelled contracts on which `Class` or `ClassRollup` departs from the reference label:
+
+```{r}
+#| label: class-disagreement
+compared |>
+  dplyr::filter(Class != LabelDetailed | ClassRollup != LabelBroad) |>
+  dplyr::select(
+    DocID,                  # the document
+    LabelDetailed,          # the reference label
+    Class,                  # what the detailed model chose
+    BertClassDetailedProb,  # how sure it was
+    LabelBroad,             # the reference broad category
+    ClassRollup,            # the paper's broad label, rolled up from Class
+    ClassBroad,             # what the separate broad model chose
+    HierConsistent          # FALSE where that model departs from the roll-up
+  )
+```
+
+Read this agreement as a check that the files fit together, not as accuracy. The labelled sample is the training data
+of the published models: every document above was among those they were fitted on. Accuracy on documents a model has
+not seen comes from the cross-validation over the folds, not from this comparison.
+
+On the `r sum(!compared$HierConsistent)` labelled contracts where `HierConsistent` is `FALSE`, the detailed model
+agrees with the reference label in `r sum(!compared$HierConsistent & compared$Class == compared$LabelDetailed)`.
+
+### Applying a model to your own documents
+
+[The classifiers part](data.qmd#part-models) holds the `r num("models.count")` models as zip archives, one per task
+and context length. Beside them, `models_index.csv` maps each archive to the folder it unpacks to; its
+`LabelledPublished` marks the models whose output is published, and `Selected` and `MacroF1` the configuration
+cross-validation chose for each task. `deployed.parquet` is the record of that selection; it lists the broad model at
+512 tokens. `README.md` in the same folder is the usage guide: it holds the code that applies a model and three rules
+for reproducing a published column. The input is `TextRaw` from [the documents part](data.qmd#part-text), the context
+length is the one in the archive's name, and the label mapping comes from the model.
+
+## The keyword classifier {#keywords}
+
+Beside each transformer label the contracts table carries a label from a keyword classifier, which its codebook
+calls an independent second instrument. The core part publishes its lexicon as `KeywordTerms.parquet`:
+`r fmt_int(num("rows.keywordterms"))` rows, one per task, category and term, with `Task` naming the task
+(`ClassDetailed`, `ClassBroad` or `AmendType`). `Term` is the keyword, one to three lower-case words searched in the
+first 256 words of a document. `Precision` is the share of the labelled documents containing it that belong to its
+category, and `Power`, the term's strength, is the lower bound of the Wilson interval of that precision. The codebook
+lists the other columns.
+
+The package publishes the terms and the labels they gave; the code that finds a term in a text is in the pipeline
+(see [the Code page](reproduce.qmd)). In the contracts table the keyword label of the detailed task is
+`KwClassDetailed`, with the keyword that decided it in `KwClassDetailedTerm` and its `Power` in
+`KwClassDetailedPower`; the label is missing where no keyword applied or two categories tied. The broad task has the
+same three columns. `ClassDetailedFlag` and `ClassBroadFlag` say whether the keyword label confirmed the transformer,
+contradicted it, or left it unchecked by giving no category. For the amendment task `KwAmendType` is `Amended` where
+an amendment term applies and `Original` otherwise. The lexicon also lists `r length(original_terms)` terms for
+`Original`, which that rule does not use.
+
+### Worked example {#keyword-example}
+
+Every row the keyword classifier labelled in the detailed or broad task records the term that decided the label.
+The terms behind one category:
+
+```{r}
+#| label: keyword-terms
+contracts |>
+  dplyr::filter(KwClassDetailed == "Leases") |>
+  dplyr::count(
+    KwClassDetailedTerm,   # the term that decided the label
+    KwClassDetailedPower,  # its Power in the lexicon
+    name = "Rows"          # how many rows of the sample it labelled
+  ) |>
+  dplyr::arrange(dplyr::desc(KwClassDetailedPower))
+```
+
+The lexicon itself is in the sample, so the same terms can be read with their `Power` and `Precision`. The strongest
+terms of that category, by rank:
+
+```{r}
+#| label: keyword-lexicon
+keyword_terms <- arrow::read_parquet("sample/core/KeywordTerms.parquet")
+
+keyword_terms |>
+  dplyr::filter(
+    Task == "ClassDetailed",  # the detailed task
+    Class == "Leases"         # the category the terms above decided
+  ) |>
+  dplyr::arrange(Rank) |>
+  dplyr::select(
+    Rank,       # position within the category, by Power
+    Term,       # the keyword itself
+    Power,      # the lower bound of the Wilson interval of its precision
+    Precision,  # the share of its labelled documents that are Leases
+    HitsTot     # labelled documents containing it
+  ) |>
+  utils::head(10)
+```
+
+The same file holds the other two tasks under their own `Task` value:
+
+```{r}
+#| label: keyword-tasks
+keyword_terms |>
+  dplyr::count(
+    Task,            # the three tasks share one file
+    name = "Terms"   # terms published for each
+  )
+```
+
+How often the keyword classifier gives a label at all, and whether it agrees with the transformer when it does:
+
+```{r}
+#| label: keyword-flags
+contracts |>
+  dplyr::count(ClassDetailedFlag)
+```
+
+`contradicted` is a disagreement between two instruments, not yet an error of either. On the labelled contracts the
+reference labels say which one was right, bearing in mind that both instruments were built from these documents:
+
+```{r}
+#| label: keyword-contradicted
+compared |>
+  dplyr::filter(ClassDetailedFlag == "contradicted") |>
+  dplyr::count(
+    TransformerRight = Class == LabelDetailed,        # the transformer's label matches the reference label
+    LexiconRight = KwClassDetailed == LabelDetailed   # the lexicon's label matches the reference label
+  )
+```
+
+## Extraction {#extraction}
+
+The organisation candidates come from LexNLP 2.3.0, run inside the container image of
+[the extraction image part](data.qmd#part-lexnlp); places, dates, law clauses and redaction markers come from the
+pipeline's own extractors. Rules written in R, part of the pipeline, decide which candidates become spans: they
+match organisations to the registrant and give each party a role, attach places to parties, read the jurisdiction a
+law clause names, and place each date relative to the filing date. `lexnlp/README.md` in the extraction image part
+says how to load and run the image. It is built for `linux/arm64`; on an Intel or AMD machine Docker runs it under
+emulation.
+
+| Span file | One row per |
+|:--|:--|
+| `org_mentions` | mention of a party; one row without a span for a contract with none |
+| `places_geo` | place named, attached to a party or not |
+| `law_clauses` | law clause |
+| `date_spans` | date that could be read |
+| `term_spans` | stated period, or a clause stating the contract has no fixed length |
+| `redact_spans` | redaction or omission marker |
+
+Beside each span the files keep what the rules read: whether a place was attached to a party, whether a date falls
+before or after the filing, whether a period is left open, whether a marker withholds text.
+[From spans to variables](#spans-to-variables) turns one span file into a column of the contracts table.
+
+### The span files of the sample
+
+Each span file holds one row per entity found, keyed on the document and located by its offsets into the text (see
+[the data page](data.qmd#span-offsets-are-0-based-and-half-open)). Counted per document:
+
+```{r}
+#| label: spans-read
+span_files <- list.files(
+  "sample/spans",           # every span file of the sample
+  pattern = "\\.parquet$",  # the codebook beside them is not a span file
+  full.names = TRUE         # read_parquet needs the path, not the name
+)
+names(span_files) <- sub(
+  "\\.parquet$",        # the file extension
+  "",                   # dropped, so the name is the kind of span
+  basename(span_files)  # the file names without their folder
+)
+spans <- lapply(
+  span_files,          # one path per kind of span
+  arrow::read_parquet  # each file read whole: the sample is small
+)
+```
+
+```{r}
+#| label: spans-per-document
+per_document <- function(kind) {
+  start <- grep(
+    "Start$",              # the first ...Start column is the span's own start
+    names(spans[[kind]]),  # the columns of this span file
+    value = TRUE           # the name rather than its position
+  )[1]
+  spans[[kind]] |>
+    dplyr::filter(!is.na(.data[[start]])) |>
+    dplyr::count(
+      DocID,         # one count per document
+      name = "Rows"  # the rows of this kind in the document
+    ) |>
+    dplyr::summarise(
+      Kind = kind,                   # the span file
+      Documents = dplyr::n(),        # documents with at least one span
+      Spans = sum(Rows),             # spans in all
+      Median = stats::median(Rows),  # spans in the typical document
+      Max = max(Rows)                # spans in the busiest document
+    )
+}
+
+names(spans) |>
+  lapply(per_document) |>
+  dplyr::bind_rows()
+```
+
+The spans of one contract, kind by kind: the shortest contract of the sample that appears in all `r n_span_files`
+span files.
+
+```{r}
+#| label: spans-example-contract
+text <- arrow::read_parquet("sample/text/exhibit10/exhibit10_sample.parquet")
+with_all_kinds <- Reduce(
+  intersect,  # documents present in every span file
+  lapply(     # one vector of document keys per span file
+    spans,               # every span file
+    function(x) x$DocID  # the documents it holds
+  )
+)
+example_doc <- text |>
+  dplyr::filter(DocID %in% with_all_kinds) |>
+  dplyr::slice_min(stringi::stri_length(TextRaw)) |>
+  dplyr::pull(DocID)
+```
+
+```{r}
+#| label: spans-example-row
+#| include: false
+example_row <- contracts |>
+  dplyr::filter(DocID == example_doc)
+```
+
+It was filed by `r example_row$CompanyName` on `r example_row$DateFiled` and described by the filer as
+`r example_row$DocDesc`; its `DocID` is `r example_doc`. The spans of one kind, in the order they appear in the text:
+
+```{r}
+#| label: spans-one-kind
+spans_of <- function(kind) {
+  start <- grep(
+    "Start$",              # the first ...Start column is the span's own start
+    names(spans[[kind]]),  # the columns of this span file
+    value = TRUE           # the name rather than its position
+  )[1]
+  spans[[kind]] |>
+    dplyr::filter(DocID == example_doc) |>
+    dplyr::arrange(.data[[start]]) |>
+    dplyr::select(-DocID)
+}
+
+spans_of("term_spans")
+```
+
+Every kind of span in the same contract, one tab each:
+
+```{r}
+#| label: spans-tabset
+#| echo: false
+#| results: asis
+cat("::: {.panel-tabset}\n\n")
+for (kind in names(spans)) {
+  cat(sprintf(
+    "#### %s\n\n::: {.table-scroll}\n\n",  # one tab per kind, its table in a box that scrolls sideways
+    kind                                   # named after the span file
+  ))
+  print(knitr::kable(spans_of(kind)))
+  cat("\n:::\n\n")
+}
+cat(":::\n")
+```
+
+## From spans to variables {#spans-to-variables}
+
+`TermYears` in the contracts table is the longest term the contract states, in years. A contract can state several
+periods, and `term_spans` keeps every one of them, with the period in years (`TermYears`), the phrasing that matched
+(`TermKind`) and whether the clause states the contract has no fixed length (`IsOpen`). The periods with a length:
+
+```{r}
+#| label: term-candidates
+terms <- arrow::read_parquet("sample/spans/term_spans.parquet")
+
+candidates <- terms |>
+  dplyr::filter(
+    !is.na(TermYears),  # the phrase parsed into a length
+    !IsOpen             # an open-ended period has no length to compare
+  )
+
+candidates |>
+  dplyr::count(
+    TermKind,           # the phrase the period came from
+    name = "Spans"      # candidates of that kind in the sample
+  )
+```
+
+The published rule, recomputed from the spans: the longest of these periods in each contract, against the published
+column.
+
+```{r}
+#| label: term-rule
+per_contract <- candidates |>
+  dplyr::summarise(
+    LongestStated = max(TermYears),  # the published rule
+    Candidates = dplyr::n(),         # periods to choose among
+    .by = DocID                      # one value per contract
+  ) |>
+  dplyr::inner_join(
+    dplyr::select(  # the published column beside the recomputed one
+      contracts,    # one row per contract
+      DocID,        # the contract
+      TermYears     # the published term in years
+    ),
+    by = "DocID"  # the span files are keyed on the same document
+  ) |>
+  dplyr::filter(!is.na(TermYears))  # contracts for which a term was published
+
+term_check <- per_contract |>
+  dplyr::summarise(
+    Contracts = dplyr::n(),                   # contracts with a candidate period
+    SeveralCandidates = sum(Candidates > 1),  # contracts that state more than one period
+    PublishedRuleMatches = sum(dplyr::near(   # contracts the recomputed rule reproduces
+      LongestStated,  # the published rule, recomputed
+      TermYears       # the published column
+    ))
+  )
+
+term_check
+```
+
+The recomputed rule gives the published value in `r term_check$PublishedRuleMatches` of the
+`r term_check$Contracts` contracts, and `r term_check$SeveralCandidates` of them state more than one period. What the
+chosen period governs:
+
+```{r}
+#| label: term-period-kind
+candidates |>
+  dplyr::arrange(TermStart) |>
+  dplyr::slice_max(
+    TermYears,          # the published rule: the longest period
+    n = 1,              # one period per contract
+    with_ties = FALSE,  # of periods equally long, the first the text states
+    by = DocID          # per contract
+  ) |>
+  dplyr::count(
+    PeriodKind,          # what the chosen period governs
+    name = "Contracts"   # contracts whose longest period is of that kind
+  )
+```
+
+The published column is one rule over the spans. `PeriodKind` records what each period governs, from the word
+before it; its codebook adds: "Descriptive only; no variable uses it." A study that wants the agreement's own term
+rather than the longest stated period filters on it and writes its rule in a line.
+
+The span files are keyed on the primary copy of each attachment; `HashDocument` in the contracts table reaches the
+other registrant copies.

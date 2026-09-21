@@ -1,0 +1,48 @@
+project:
+  type: website
+  output-dir: docs
+  render:
+    - index.qmd
+    - data.qmd
+    - methods.qmd
+    - stata.qmd
+    - reproduce.qmd
+  resources:
+    - .nojekyll
+
+website:
+  title: "Material contracts: data and methods"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: data.qmd
+        text: Data
+      - href: methods.qmd
+        text: Methods
+      - href: stata.qmd
+        text: Stata
+      - href: reproduce.qmd
+        text: Code
+  page-footer:
+    left: "{{< var paper.authors >}}. Contact: {{< var site.contact >}}"
+    right: "[Source of this site]({{< var site.repository >}})"
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    lang: en-GB
+    css: styles.css
+    code-copy: true
+    df-print: kable
+
+filters:
+  - quarto
+  - _filters/todo.lua
+
+execute:
+  echo: true
+  warning: true
+  error: false

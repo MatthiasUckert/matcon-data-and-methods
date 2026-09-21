@@ -1,0 +1,20 @@
+Column,Type,Block,Meaning,Missing,StataName
+HashIndex,VARCHAR,Identification,The 8-K filing. Joins to Contracts where the filing carried a contract.,never,HashIndex
+DocID,VARCHAR,Identification,The 8-K document the Item 1.01 text was read from; its text is in text/8k or text/8ka.,never,DocID
+CIK,VARCHAR,Identification,The filer's Central Index Key on EDGAR.,never,CIK
+DateFiled,DATE,Identification,The day EDGAR accepted the filing.,never,DateFiled
+FormType,VARCHAR,Identification,8-K or 8-K/A.,never,FormType
+SumAttached,INTEGER,Announcement,1 where the filing carried an Exhibit 10; 0 where the agreement was announced without the contract.,never,SumAttached
+SumDates,INTEGER,Announcement,Distinct agreement dates at the start of the Item 1.01 text: a proxy for the number of agreements announced.,the Item 1.01 text could not be recovered,SumDates
+SumDateFirst,DATE,Announcement,The first of those dates: the agreement date.,the text names no agreement date,SumDateFirst
+SumIsSingle,INTEGER,Announcement,1 where the text names exactly one agreement date.,the Item 1.01 text could not be recovered,SumIsSingle
+SumLagDays,INTEGER,Announcement,"DateFiled minus SumDateFirst, in calendar days; negative where the filing precedes the date. Item 1.01 allows four business days.",as SumDateFirst,SumLagDays
+SumWords,INTEGER,Announcement,"Words in the Item 1.01 text, without its heading and title.",never,SumWords
+SumSentences,INTEGER,Announcement,Sentences in that text.,never,SumSentences
+SumComplex,INTEGER,Announcement,Words of three or more syllables in that text.,never,SumComplex
+SumFog,DOUBLE,Announcement,Gunning Fog index: 0.4 x (words per sentence + 100 x share of complex words).,never,SumFog
+SumUncertain,INTEGER,Announcement,Words of the Loughran-McDonald uncertainty list.,never,SumUncertain
+SumNumbers,INTEGER,Announcement,Numeric tokens.,never,SumNumbers
+SumDollars,INTEGER,Announcement,"Dollar figures: a currency sign, a number and an optional scale word.",never,SumDollars
+SumPercents,INTEGER,Announcement,Percentages.,never,SumPercents
+SumBoiler,DOUBLE,Announcement,Share of the text's four-word phrases that occur in the filings of at least one in a hundred distinct filers (after Lang and Stice-Lawrence 2015).,never,SumBoiler

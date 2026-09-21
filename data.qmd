@@ -1,0 +1,745 @@
+---
+title: "The data"
+description: >-
+  The parts of the data package, the tables of the database, their codebooks, and three things to know before
+  counting anything.
+---
+
+```{r}
+#| label: setup
+#| include: false
+source("_common.R")
+contracts <- arrow::read_parquet("sample/core/Contracts.parquet")
+labels_sample <- arrow::read_parquet("sample/core/Labels.parquet")
+comp <- sample_composition()
+package_link <- link_or_gap(
+  vars$data$package_link,  # the folder of the whole package, from _variables.yml
+  "the whole package"      # what the reader sees
+)
+n_span_files <- length(list.files(
+  "sample/spans",          # the span files of the sample
+  pattern = "\\.parquet$"  # the codebook beside them is not a span file
+))
+```
+
+The data package {{< var data.version >}} comes in `r nrow(parts)` parts: `r fmt_int(published_total("files"))` files
+besides the checksum manifest, `r fmt_bytes(published_total("bytes"))` in all, the parts below and a README at the
+root of the package. Each part is a folder that can be downloaded on its own. The parts are shared from
+{{< var data.archive >}}, each with its own download link.`r doi_text(vars$data$archive_doi)`
+
+Every example on this site reads the sample in `sample/` of the [site's repository]({{< var site.repository >}}). It
+holds `r comp$labelled` contracts of the labelled sample, `r comp$per_category` from each of the `r comp$categories`
+detailed categories, plus `r comp$rejected` attachments the text screen rejected and all `r comp$copy_rows` registrant
+copies of `r comp$copy_attachments` attachments filed by several registrants, so that the checks below have something
+to show: `r comp$rows` rows in all, with the rows every table and span file holds for them. To run an example, clone
+the repository and run the code from its root. The examples need the R packages `arrow`, `dplyr`, `stringi` and
+`tibble`; none needs the data package.
+
+## The parts
+
+```{r}
+#| label: parts-sections
+#| echo: false
+#| results: asis
+for (i in seq_len(nrow(parts))) {
+  key <- parts$Part[i]
+  bytes_key <- paste0(
+    "folder.bytes.",  # the size of a part in package_numbers.csv
+    key               # this part
+  )
+  files_key <- paste0(
+    "folder.files.",  # the number of files of a part in package_numbers.csv
+    key               # this part
+  )
+  cat(sprintf(
+    "### %s {#part-%s}\n\n%s\n\n",  # heading, anchor, then the summary as the author wrote it
+    parts$Title[i],                  # the part's title in data/parts.csv
+    key,                             # a stable anchor for links from other pages
+    parts$Summary[i]                 # the author's summary, unchanged
+  ))
+  cat(sprintf(
+    "- %s in %s files\n- %s\n\n",  # size and file count, then the state of the part
+    fmt_bytes(num(bytes_key)),     # read from package_numbers.csv, never typed
+    fmt_int(num(files_key)),       # read from package_numbers.csv, never typed
+    part_state(                    # published with its link, or the state in words
+      parts$Status[i],  # published, request or planned
+      parts$Link[i]     # a link only where the part is published
+    )
+  ))
+}
+```
+
+## Getting a part
+
+Each part above links to its own folder; `r package_link` has a link of its own. At the root of the package are a
+`README.md` and a `MANIFEST.sha256`, which lists every file with its SHA-256 checksum. {{< var data.archive >}} may
+deliver a large folder as several zip files; unpack them into one folder, with `MANIFEST.sha256` at its root, before
+checking. From that folder (macOS, Linux), the first line checks the whole package and the second only the parts its
+pattern names, here `core` and `spans`:
+
+```bash
+shasum -a 256 -c MANIFEST.sha256
+grep -E '  (core|spans)/' MANIFEST.sha256 | shasum -a 256 -c
+```
+
+## Reading the files
+
+The tables are parquet files. The package's README reads them as follows:
+
+- R: `arrow::read_parquet("core/Contracts.parquet")`
+- Python: `pandas.read_parquet("core/Contracts.parquet")`
+- SQL: `duckdb -c "SELECT count(*) FROM 'core/Contracts.parquet'"`
+
+No `.dta` files are published; [the Stata page](stata.qmd) says how to read the tables in Stata.
+
+The sample keeps the package's folders, file names and columns, so an example moves to the package by replacing
+`sample/` with the root of the package. The documents are the exception. The sample keeps them in one file,
+`text/exhibit10/exhibit10_sample.parquet`, where the package has one file per type and filing year,
+`text/<type>/<type>_<year>.parquet`. The sample holds Exhibit 10 attachments only, without the `HTML` column, the
+document as retrieved from EDGAR. It carries no contract index, no models and no extraction image.
+
+A file too large for memory is opened lazily and filtered before it is collected:
+
+```{r}
+#| label: read-lazy
+exhibits <- arrow::open_dataset("sample/text/exhibit10")  # a folder of parquet files, opened as one table
+wanted <- arrow::read_parquet(
+  "sample/core/Contracts.parquet",  # the contracts table
+  col_select = "DocID"              # only the key is needed here
+)$DocID[1]                          # one document of the sample
+
+exhibits |>
+  dplyr::filter(DocID %in% wanted) |>  # the documents a study needs
+  dplyr::select(
+    DocID,  # the document
+    YQ,     # its filing year and quarter
+    DocExt  # its file type as filed
+  ) |>
+  dplyr::collect()  # the rows are read here
+```
+
+On the package the same code, with `sample/` removed, opens `text/exhibit10`: every filing year as one table.
+
+## The tables of the core part
+
+```{r}
+#| label: core-helper
+#| include: false
+read_codebook <- function(file) {
+  readr::read_csv(
+    file,                                    # one codebook, from the folder it documents
+    col_types = readr::cols(.default = "c")  # a codebook is text throughout
+  ) |>
+    dplyr::mutate(dplyr::across(
+      dplyr::everything(),                          # every column may carry a wrapped line
+      function(x) stringi::stri_replace_all_regex(  # each cell unwrapped
+        x,       # the cell text
+        "\\s+",  # a line break and its indent inside a cell
+        " "      # read as the single space it stands for
+      )
+    ))
+}
+key_columns <- function(table, columns) {
+  codebook_file <- sprintf(
+    "sample/core/%s_Codebook.csv",  # the codebook of the table
+    table                           # Contracts, Summaries, ...
+  )
+  wanted <- stringi::stri_split_regex(
+    stringi::stri_trim_both(columns),  # the column names, separated by spaces or line breaks
+    "\\s+"                             # one name per word
+  )[[1]]
+  read_codebook(codebook_file) |>
+    dplyr::filter(Column %in% wanted) |>
+    dplyr::select(
+      Column,  # the column
+      Meaning  # the codebook's meaning, unchanged
+    ) |>
+    knitr::kable()
+}
+summaries <- arrow::read_parquet("sample/core/Summaries.parquet")
+places <- arrow::read_parquet("sample/core/Places.parquet")
+termdocs <- arrow::read_parquet("sample/core/TermDocs.parquet")
+cto_orders <- arrow::read_parquet("sample/core/CtoOrders.parquet")
+```
+
+The core part holds the tables below with their codebooks, the contract index, the labelled sample and the keyword
+terms. The meanings shown are the codebook's own.
+
+### Contracts
+
+One row per registrant copy of an Exhibit 10 attachment: `r fmt_int(num("rows.contracts"))` rows, of which the
+sample holds `r nrow(contracts)`. The filing, the classification and the content variables of the contract sit side
+by side; below are its keys, the filing, the rejection and copy flags, the labels and the sample flags:
+
+```{r}
+#| label: core-contracts
+#| echo: false
+key_columns(
+  "Contracts",  # the table
+  "DocID HashDocument HashIndex CIK DateFiled FormType UrlDocument MultFiler PrimaryFiler Removed RemClass
+   Class ClassRollup ClassBroad AmendType DescSample EstiSample"  # keys, copy to count, rejection, labels, samples
+)
+```
+
+`EstiSample` marks the paper's estimation sample, which requires a Compustat match; Compustat is not published
+([what needs WRDS](reproduce.qmd#what-needs-wrds)).
+
+### Summaries
+
+One row per current report (Form 8-K or 8-K/A) with an Item 1.01 text announcing a material agreement:
+`r fmt_int(num("rows.summaries"))` rows. `SumAttached` is 1 where the filing carried an Exhibit 10 and 0 where the
+agreement was announced without the contract. The sample holds the `r nrow(summaries)` announcements that carried a
+sampled contract.
+
+```{r}
+#| label: core-summaries
+#| echo: false
+key_columns(
+  "Summaries",                                                                       # the table
+  "HashIndex DocID DateFiled SumAttached SumDates SumDateFirst SumLagDays SumWords SumBoiler"  # filing, timing, text
+)
+```
+
+### Places
+
+One row per contract, geographic level (country, state, county or city) with its state and country, party role and
+law-clause flag, with the number of mentions: `r fmt_int(num("rows.places"))` rows, `r fmt_int(nrow(places))` in the
+sample. The table does not name cities or counties; `spans/places_geo.parquet` (`GeoUnit`) names them. `GeoCountry`
+keeps the country's name as found in the text, so one country can take several rows in a contract; count countries on
+`GeoCountryIso`. Like TermDocs below, the table holds the primary copy of each attachment (`PrimaryFiler == 1`);
+`HashDocument` reaches every registrant copy.
+
+```{r}
+#| label: core-places
+#| echo: false
+key_columns(
+  "Places",                                                                          # the table
+  "DocID HashDocument GeoLevel GeoState GeoCountryIso GeoCountry PartyRole InLawClause nMentions"  # place, whose, count
+)
+```
+
+### TermDocs
+
+One row per contract and term family, `r length(unique(termdocs$Family))` families, on the primary copy of the
+contract: `r fmt_int(num("rows.termdocs"))` rows, `r fmt_int(nrow(termdocs))` in the sample. `HashDocument` reaches
+the other registrant copies.
+
+```{r}
+#| label: core-termdocs
+#| echo: false
+key_columns(
+  "TermDocs",                                              # the table
+  "DocID HashDocument Family nHits nTerms HasTerm FirstPos PerKWords"   # the family, how strongly it is used
+)
+```
+
+### CtoOrders
+
+One row per exhibit reference in a confidential treatment order, whatever the order decided (`Status`) and whether
+or not it was linked to a contract (`LinkStatus`): `r fmt_int(num("rows.ctoorders"))` rows. The sample holds the
+`r nrow(cto_orders)` references linked to a sampled contract.
+
+```{r}
+#| label: core-ctoorders
+#| echo: false
+key_columns(
+  "CtoOrders",                                                                       # the table
+  "OrderDocID OrderDate Status IsExtension ExhibitNo ReleaseDate DocID LinkStatus"   # the order, its terms, its contract
+)
+```
+
+### The contract index, the labelled sample and the keyword terms
+
+`ContractIndex.csv.gz` locates each contract on EDGAR, keyed on `DocID`: the filing (`AccessionNumber`, `CIK`,
+`CompanyName`, `FormType`, `DateFiled`), the attachment within it (`DocName`, `DocSeq`, `DocDesc`), its labels and
+the two EDGAR links; [its codebook below](#contractindex) lists every column. It is a compressed CSV, so it opens
+without a parquet reader.
+
+`Labels.parquet` is the labelled sample: one row per labelled contract with the annotators' labels and the
+cross-validation fold in which it was held out (`Fold`), `r fmt_int(num("rows.labels"))` rows, of which the sample
+holds `r nrow(labels_sample)`.
+
+`KeywordTerms.parquet` holds the keyword terms of all three classification tasks, `r fmt_int(num("rows.keywordterms"))`
+rows, with `Task` naming the task a term belongs to. It is described with [the keyword classifier](methods.qmd#keywords).
+
+## The codebooks
+
+```{r}
+#| label: codebook-helper
+#| include: false
+codebook_table <- function(file) {
+  codebook <- read_codebook(file)
+  shown <- c(
+    "File",                                                  # the span file a row describes, where there is one
+    "Column",                                                # the column
+    "Type",                                                  # its type
+    "Meaning",                                               # what it holds
+    if (any(codebook$StataName != codebook$Column)) "StataName"  # its Stata name, only where one differs
+  )
+  codebook <- dplyr::select(
+    codebook,             # one row per column of the table
+    dplyr::any_of(shown)  # File exists in the span codebook only
+  )
+  table_name <- sub(
+    "_Codebook\\.csv$",  # Contracts_Codebook.csv ...
+    "",                  # ... becomes Contracts
+    basename(file)       # the file name without its folder
+  )
+  element_id <- paste0(
+    "codebook-",  # a prefix that cannot clash with the page's own ids
+    table_name    # one id per codebook
+  )
+  meaning_column <- which(names(codebook) == "Meaning") - 1
+  DT::datatable(
+    codebook,                # one row per column of the table
+    elementId = element_id,  # a fixed id, so that every render writes the same page
+    rownames = FALSE,        # the row number carries no information
+    options = list(          # the settings of the DataTables widget
+      pageLength = 10,       # ten columns at a time keeps the page short
+      columnDefs = list(list(            # one rule for one column
+        className = "codebook-meaning",  # styles.css gives the meaning room to read
+        targets = meaning_column         # DataTables counts columns from 0
+      ))
+    )
+  )
+}
+codebook_files <- list.files(
+  "sample",                      # the codebooks of the sample
+  pattern = "_Codebook\\.csv$",  # one per table, one for the span files, one for the documents
+  recursive = TRUE,              # they sit in core/, spans/ and text/
+  full.names = TRUE              # read_csv needs the path
+)
+stata_names_kept <- all(vapply(
+  codebook_files,                              # every codebook
+  function(file) {
+    codebook <- read_codebook(file)
+    all(codebook$StataName == codebook$Column)  # TRUE where no column is renamed for Stata
+  },
+  logical(1)                                   # one answer per codebook
+))
+stata_sentence <- if (stata_names_kept) {
+  "Every column keeps its name in Stata."
+} else {
+  "Where a column takes another name in Stata, its codebook below shows `StataName`."
+}
+```
+
+Every table in `core/` has a codebook beside it (`*_Codebook.csv`), one row per column with its type and meaning. The
+span files share one, whose `File` column names the file a row describes, and the documents in `text/` have their
+own. The sample holds them where the package does. `r stata_sentence` The search box above each codebook filters its
+rows.
+
+### Contracts
+
+```{r}
+#| label: codebook-contracts
+#| echo: false
+codebook_table("sample/core/Contracts_Codebook.csv")
+```
+
+### Summaries
+
+```{r}
+#| label: codebook-summaries
+#| echo: false
+codebook_table("sample/core/Summaries_Codebook.csv")
+```
+
+### Places
+
+```{r}
+#| label: codebook-places
+#| echo: false
+codebook_table("sample/core/Places_Codebook.csv")
+```
+
+### TermDocs
+
+```{r}
+#| label: codebook-termdocs
+#| echo: false
+codebook_table("sample/core/TermDocs_Codebook.csv")
+```
+
+### CtoOrders
+
+```{r}
+#| label: codebook-ctoorders
+#| echo: false
+codebook_table("sample/core/CtoOrders_Codebook.csv")
+```
+
+### Labels
+
+```{r}
+#| label: codebook-labels
+#| echo: false
+codebook_table("sample/core/Labels_Codebook.csv")
+```
+
+### KeywordTerms
+
+```{r}
+#| label: codebook-keywordterms
+#| echo: false
+codebook_table("sample/core/KeywordTerms_Codebook.csv")
+```
+
+### ContractIndex
+
+```{r}
+#| label: codebook-contractindex
+#| echo: false
+codebook_table("sample/core/ContractIndex_Codebook.csv")
+```
+
+### Spans
+
+One codebook covers the `r n_span_files` span files.
+
+```{r}
+#| label: codebook-spans
+#| echo: false
+codebook_table("sample/spans/Spans_Codebook.csv")
+```
+
+### Text
+
+```{r}
+#| label: codebook-text
+#| echo: false
+codebook_table("sample/text/Text_Codebook.csv")
+```
+
+## Three things to know before counting
+
+The examples below start from the contracts table of the sample:
+
+```{r}
+#| label: read-contracts
+contracts <- arrow::read_parquet("sample/core/Contracts.parquet")  # core/Contracts.parquet in the package
+```
+
+### The unit of observation is the registrant copy
+
+One row of the contracts table is one registrant's copy of one Exhibit 10 attachment. When a filing names two
+registrants, the same attachment arrives twice, once under each registrant's CIK. `HashDocument` identifies the
+attachment itself and is shared by its copies; `DocID` identifies the copy. `DocID` is the registrant's CIK and the
+hash of the attachment joined by a hyphen, as the check below confirms; the accession number sits in `UrlIndexPage`
+and, under its own name, in the contract index.
+
+```{r}
+#| label: unit-docid
+contracts |>
+  dplyr::summarise(
+    Rows = dplyr::n(),                              # copies in the sample
+    Attachments = dplyr::n_distinct(HashDocument),  # distinct documents among them
+    DocIDIsCikAndHash = all(  # TRUE when every key is the CIK and the hash, not the accession number
+      DocID == paste(
+        CIK,           # the registrant
+        HashDocument,  # the attachment
+        sep = "-"      # joined as in the published key
+      )
+    )
+  )
+```
+
+The entity variables were computed once per attachment, on the copy marked `PrimaryFiler == 1`, and repeated on the
+other copies. A statistic over contracts rather than over registrant copies therefore keeps only that copy:
+
+```{r}
+#| label: unit-primary
+contracts |>
+  dplyr::count(
+    MultFiler,    # 1 where the filing names more than one registrant
+    PrimaryFiler  # 1 on the copy the entity values were computed from
+  )
+```
+
+The sample carries such copies, so the filter does something here:
+
+```{r}
+#| label: unit-filter
+contracts_unique <- contracts |>
+  dplyr::filter(PrimaryFiler == 1)
+
+nrow(contracts_unique)
+```
+
+That is `r nrow(contracts) - nrow(contracts_unique)` of the `r nrow(contracts)` rows dropped as further copies of an
+attachment already counted.
+
+### Rejected attachments stay in the file
+
+`Removed` marks an attachment that failed the screen for usable text, and `RemClass` gives the reason. These
+attachments stay in the table, flagged, so that what was set aside remains visible; an analysis that wants readable
+contracts filters on `Removed`.
+
+```{r}
+#| label: removed-count
+contracts |>
+  dplyr::count(
+    Removed,  # TRUE where the attachment failed the screen for usable text
+    RemClass  # why it was set aside
+  )
+```
+
+The sample carries `r sum(contracts$Removed)` such attachments, so the count above gives their reasons and the filter
+below drops them:
+
+```{r}
+#| label: removed-filter
+contracts_readable <- contracts_unique |>
+  dplyr::filter(!Removed)
+
+nrow(contracts_readable)
+```
+
+The two filters together leave `r nrow(contracts_readable)` of the `r nrow(contracts)` rows of the sample: one
+readable contract each.
+
+### Span offsets are 0-based and half-open
+
+Every span file locates its entity with a start and a stop offset into the published text of the document. The
+offsets are 0-based and half-open, and they count characters, not bytes. In R the span is
+`stringi::stri_sub(TextRaw, Start + 1, Stop)`; in Python it is `text[Start:Stop]`.
+
+```{r}
+#| label: spans-slice
+options(arrow.use_altrep = FALSE)  # plain R strings, so a text joined to many spans is not converted for each
+text <- arrow::read_parquet("sample/text/exhibit10/exhibit10_sample.parquet")
+dates <- arrow::read_parquet("sample/spans/date_spans.parquet")
+
+dates |>
+  utils::head(8) |>
+  dplyr::inner_join(
+    text,         # the published text the offsets point into
+    by = "DocID"  # a span file and the text share the document key
+  ) |>
+  dplyr::transmute(
+    DocID,                       # the document
+    DateStart,                   # 0-based start
+    DateStop,                    # half-open stop
+    Sliced = stringi::stri_sub(  # what the offsets cut out of the text
+      TextRaw,                   # the published text of the document
+      DateStart + 1,             # a 0-based start is R's 1-based first character
+      DateStop                   # a half-open stop is R's inclusive last character
+    ),
+    DateText                     # what the span file stores
+  )
+```
+
+The same holds for every span file. Each names its offsets after its entity (`DateStart`, `MentionStart`, ...) and
+most store the text they found beside them; the governing-law file stores none.
+
+```{r}
+#| label: spans-check
+offset_check <- function(file) {
+  spans <- arrow::read_parquet(file) |>
+    dplyr::inner_join(
+      text,         # the published text the offsets point into
+      by = "DocID"  # a span file and the text share the document key
+    )
+  start <- grep(
+    "Start$",      # the first ...Start column is the span's own start
+    names(spans),  # the columns of this span file
+    value = TRUE   # the name rather than its position
+  )[1]
+  end <- sub(
+    "Start$",  # DateStart, MentionStart, ...
+    "Stop",    # ... pair with DateStop, MentionStop, ...
+    start      # the start column found above
+  )
+  stored <- grep(
+    "Text$",       # DateText, PlaceText, SpanText, ...: the text the extractor stored
+    names(spans),  # the columns of this span file
+    value = TRUE   # the name rather than its position
+  )[1]
+  sliced <- stringi::stri_sub(
+    spans$TextRaw,       # the published text of each span's document
+    spans[[start]] + 1,  # 0-based start to R's 1-based first character
+    spans[[end]]         # half-open stop is R's inclusive last character
+  )
+  tibble::tibble(
+    File = basename(file),                    # the span file
+    Rows = nrow(spans),                       # rows in the sample
+    WithOffsets = sum(!is.na(sliced)),        # rows that locate a span
+    Stored = stored,                          # the column holding the stored text, if any
+    SliceEqualsStored = if (is.na(stored)) {  # spans whose slice is the stored text
+      NA_integer_
+    } else {
+      sum(
+        sliced == spans[[stored]],  # slice and stored text agree
+        na.rm = TRUE                # a row without offsets has nothing to compare
+      )
+    }
+  )
+}
+
+list.files(
+  "sample/spans",           # every span file of the sample
+  pattern = "\\.parquet$",  # the codebook beside them is not a span file
+  full.names = TRUE         # read_parquet needs the path, not the name
+) |>
+  lapply(offset_check) |>
+  dplyr::bind_rows()
+```
+
+A rule that reads a document's spans in text order sorts them first, for instance with
+`dplyr::arrange(DocID, DateStart)`.
+
+A contract without any identified organisation has one row in `org_mentions` without a span: a placeholder with
+`PartyRole` and `MatchKind` `none`. The same contracts have `HasNoParty == 1` in the contracts table:
+
+```{r}
+#| label: spans-noparty
+no_party <- arrow::read_parquet("sample/spans/org_mentions.parquet") |>
+  dplyr::filter(is.na(MentionStart))
+
+no_party |>
+  dplyr::select(
+    DocID,      # the document without an organisation
+    PartyRole,  # none: no party was found
+    MatchKind   # none: nothing was matched
+  ) |>
+  dplyr::left_join(
+    dplyr::select(  # the flag from the contracts table
+      contracts,    # one row per contract
+      DocID,        # the same document in the contracts table
+      HasNoParty    # 1 where the extractor found no organisation
+    ),
+    by = "DocID"  # one row per document
+  )
+```
+
+The flag records what the extractor returned, not what the contract says:
+
+```{r}
+#| label: spans-noparty-text
+named <- text |>
+  dplyr::filter(DocID %in% no_party$DocID) |>
+  dplyr::transmute(
+    DocID,                                             # the document without an organisation mention
+    NamedCompany = stringi::stri_extract_first_regex(  # the company the text names
+      TextRaw,                                                    # the published text
+      "[A-Z][\\w&.]*(?: [A-Z][\\w&.]*)*, a Delaware corporation"  # a name followed by its incorporation
+    )
+  )
+
+named
+```
+
+`r sum(!is.na(named$NamedCompany))` of these `r nrow(named)` documents name a company in their text all the same.
+
+Counting characters matters. Curly quotes, section signs and bullets take more than one byte each, and a tool that
+slices bytes cuts the wrong text for every span after the first of them:
+
+```{r}
+#| label: spans-bytes
+first_wide <- text |>
+  dplyr::transmute(
+    DocID,                                         # the document
+    FirstWide = stringi::stri_locate_first_regex(  # where byte and character positions first part
+      TextRaw,                                     # the published text
+      "[^\\u0000-\\u007f]"                         # the first character outside ASCII
+    )[, "start"]
+  )
+
+dates |>
+  dplyr::left_join(
+    first_wide,   # each document's first character outside ASCII
+    by = "DocID"  # one position per document
+  ) |>
+  dplyr::summarise(
+    Spans = dplyr::n(),        # date spans in the sample
+    AfterWideCharacter = sum(  # spans a tool that slices bytes would cut wrongly
+      DateStart >= FirstWide,  # the span starts after a character of more than one byte
+      na.rm = TRUE             # a document without such a character shifts nothing
+    )
+  )
+```
+
+`r sum(!is.na(first_wide$FirstWide))` of the `r nrow(text)` documents in the sample contain such a character.
+
+In Python the slice is the same once the text is a `str`. `PlaceStart` and `LawStart` are stored as doubles, and
+pandas reads the offsets of `org_mentions` as floats because its rows without a span have none; dropping those rows
+and casting with `int()` makes the block work on every span file:
+
+```python
+import pandas as pd
+
+text = pd.read_parquet("sample/text/exhibit10/exhibit10_sample.parquet").set_index("DocID")["TextRaw"]
+dates = pd.read_parquet("sample/spans/date_spans.parquet").dropna(subset=["DateStart"])
+
+dates["Sliced"] = [
+    text[doc][int(start):int(stop)]  # 0-based and half-open: Python's own slice
+    for doc, start, stop in zip(
+        dates["DocID"],       # the document
+        dates["DateStart"],   # 0-based start
+        dates["DateStop"],    # half-open stop
+    )
+]
+```
+
+## Known issues
+
+The package's README describes these issues of {{< var data.version >}}; the figures come from the sample.
+
+```{r}
+#| label: issue-columbia
+#| echo: false
+places_geo <- arrow::read_parquet("sample/spans/places_geo.parquet")
+columbia <- places_geo |>
+  dplyr::filter(
+    GeoCountryIso == "COL",   # coded as Colombia, the country
+    PlaceText == "Columbia"   # from the word Columbia, which is not it
+  )
+usa_spellings <- places |>
+  dplyr::filter(GeoCountryIso == "USA") |>
+  dplyr::distinct(GeoCountry) |>
+  dplyr::arrange(GeoCountry) |>
+  dplyr::pull(GeoCountry)
+usa_text <- paste0(
+  "\"",            # each spelling in quotation marks
+  usa_spellings,   # the names the Places table of the sample gives the United States
+  "\"",            # closing the quotation
+  collapse = ", "  # one list
+)
+```
+
+- **Columbia.** The gazetteer reads "Columbia" as the country Colombia, so Colombia is heavily over-counted in
+  `Places`, `places_geo` and the country counts of `Contracts`; in US contracts the word is almost always the
+  District of Columbia, British Columbia or a US city. In the sample, `r nrow(columbia)` rows of `places_geo` read
+  "Columbia" as Colombia.
+- **Country spellings.** A country can appear under several names, some in other languages; count on
+  `GeoCountryIso`. In the Places table of the sample, `USA` appears as `r usa_text`.
+- **Durations.** `DurationYears` is left missing above 30 years (`DurationDropped` says so); other date columns are
+  not capped.
+- **Broad label.** The paper's broad category is `ClassRollup`. `ClassBroad` comes from an additional model trained
+  on the broad labels directly; `HierConsistent` marks where the two differ
+  ([classification](methods.qmd#classification)).
+- **Span offsets.** `LawStart` and `PlaceStart` are stored as whole-numbered doubles, the other offsets as integers.
+- **Parties.** A contract without any identified organisation has one row in `org_mentions` without a span
+  ([above](#span-offsets-are-0-based-and-half-open)).
+- **No document-level gold set** exists for the entities. The labelled sample in `Labels.parquet` covers the
+  classification, not the extraction.
+- **The text as read.** `TextRaw` is exactly the text the classifiers and extractors read. In some HTML documents,
+  quotation marks, apostrophes and dashes appear as control characters (U+0080 to U+009F): they were written in
+  Windows-1252 and read as Latin-1. The package's README gives a repair in R and in Python that swaps one character
+  for one, so every offset stays valid. A model or extractor run on repaired text reads slightly different input from
+  the one that produced the data.
+
+### Not in the package
+
+- **Compustat.** It is licensed. `EstiSample` marks the rows of the paper's estimation sample; the match to
+  Compustat can be rebuilt from `CIK` and `DateFiled` ([what needs WRDS](reproduce.qmd#what-needs-wrds)).
+- **Amounts.** Monetary amounts were extracted but are not used by the paper and are not published.
+
+## Licences
+
+The tables, the span files and the other data of the package are published under {{< var data.licence >}}. The
+fine-tuned classifiers are published under {{< var data.licence_models >}}, the licence of the model they were
+trained from. The documents in [the documents part](#part-text) are filings the SEC made public on EDGAR. The
+extraction image contains LexNLP, which is licensed under the AGPL-3.0, and carries a notice
+(`lexnlp/NOTICE.md`). The full texts of the licences are in the `LICENSES` folder of the
+[site's repository]({{< var site.repository >}}).

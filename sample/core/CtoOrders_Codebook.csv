@@ -1,0 +1,13 @@
+Column,Type,Block,Meaning,Missing,StataName
+OrderDocID,VARCHAR,Order,The order's own document on EDGAR; its text is in text/cto.,never,OrderDocID
+OrderCIK,VARCHAR,Order,The filer the order was addressed to.,never,OrderCIK
+OrderDate,DATE,Order,The day the order was filed.,never,OrderDate
+Status,VARCHAR,Order,"GRANTING, DENYING or REVOKING, as the order's title states.",the order's text is empty,Status
+IsExtension,INTEGER,Order,1 where the order extends an earlier grant.,never,IsExtension
+ExhibitNo,VARCHAR,Reference,"The exhibit number the order names, such as 10.1.",no reference could be read,ExhibitNo
+SourceForm,VARCHAR,Reference,"The form the order says the exhibit was filed with, as written; a few values are truncated.",the order names none,SourceForm
+SourceFiledOn,DATE,Reference,The filing date the order gives for that form.,the order names none,SourceFiledOn
+ReleaseDate,DATE,Order,When the granted treatment ends.,the order states none,ReleaseDate
+HashIndex,VARCHAR,Link,The filing the reference was resolved to.,the filing was not found,HashIndex
+DocID,VARCHAR,Link,The contract the reference was resolved to. Joins to Contracts on DocID.,the link failed (see LinkStatus),DocID
+LinkStatus,VARCHAR,Link,"A-linked where the order was linked to a contract; otherwise the numbered step at which linking failed (1 no reference read, 2 not an Exhibit 10, 3 source filing not named, 4 filing not on EDGAR, 5 filing ambiguous, 6 no exhibit retrieved from that filing, 7 exhibit ambiguous, 8 lettered exhibit number, 9 exhibit not among those retrieved).",never,LinkStatus

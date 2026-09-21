@@ -1,0 +1,23 @@
+Column,Type,Block,Meaning,Missing,StataName
+DocID,VARCHAR,Identification,"One registrant's copy of an Exhibit 10 attachment: the registrant's CIK and a hash of the attachment, joined by a hyphen. Unique in this table and the key every other table joins on.",never,DocID
+AccessionNumber,VARCHAR,Identification,"The filing's accession number, read from UrlIndexPage.",never,AccessionNumber
+CIK,VARCHAR,Identification,"The registrant's Central Index Key on EDGAR. With DateFiled, the key for matching other databases.",never,CIK
+CompanyName,VARCHAR,Identification,The registrant's name as EDGAR recorded it for this filing.,never,CompanyName
+FormType,VARCHAR,Identification,"The form the attachment was filed with: 8-K, 10-K, 10-Q, S-1 and so on.",never,FormType
+DateFiled,DATE,Identification,The day EDGAR accepted the filing.,never,DateFiled
+DocName,VARCHAR,Identification,EDGAR's file name of the attachment. With the CIK and the accession number it locates the document on EDGAR.,never,DocName
+DocSeq,INTEGER,Identification,Position of the attachment in the filing's list of documents.,never,DocSeq
+DocDesc,VARCHAR,Identification,"The filer's own description of the exhibit, as free text.",the filer gave none,DocDesc
+Class,VARCHAR,Classification,"Contract type, twelve categories: the label the paper uses.",the attachment holds no text the classifiers could read (741 attachments),Class
+ClassRollup,VARCHAR,Classification,"Broad contract type, seven categories: the broad category of Class, as the paper uses it. The part of Class before the colon; Customer / Supplier and R&D roll up to Purchases and Sales; Leases, Licenses and Other stand alone.",the attachment holds no text the classifiers could read (741 attachments),ClassRollup
+ClassBroad,VARCHAR,Classification,"Broad contract type from the additional broad classifier (see BertClassBroad). Where it differs from ClassRollup, HierConsistent is FALSE.",the attachment holds no text the classifiers could read (741 attachments),ClassBroad
+AmendType,VARCHAR,Classification,Original or Amended: the label the paper uses.,the attachment holds no text the classifiers could read (741 attachments),AmendType
+HasCto,INTEGER,Orders,1 where a confidential treatment order granted treatment for this contract. Orders that denied or revoked treatment do not count.,never,HasCto
+nRedactExplicit,INTEGER,Redactions,"Bracketed markers that name confidential treatment, such as [Confidential Treatment Requested].",never,nRedactExplicit
+nRedactSymbol,INTEGER,Redactions,"Bracketed markers holding a symbol, such as [*] or [ ].",never,nRedactSymbol
+nRedactBlank,INTEGER,Redactions,Empty brackets.,never,nRedactBlank
+PrimaryFiler,INTEGER,Copies,1 on the one copy of each attachment the entity variables were computed from; the other copies carry the same values. Count contracts on PrimaryFiler == 1.,never,PrimaryFiler
+Removed,BOOLEAN,Screening,"TRUE where the attachment failed the screen for usable text (reason in RemClass). These attachments stay in the table, flagged, so that what was set aside remains visible.",never,Removed
+RemClass,VARCHAR,Screening,"Why the attachment was set aside: too short, not prose, mostly digits, or no readable text.",Removed is FALSE,RemClass
+UrlDocument,VARCHAR,Identification,Address of the attachment on EDGAR.,never,UrlDocument
+UrlIndexPage,VARCHAR,Identification,"Address of the filing's index page on EDGAR, which lists every document of the filing and contains the accession number.",never,UrlIndexPage

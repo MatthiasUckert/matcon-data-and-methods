@@ -1,0 +1,14 @@
+Column,Type,Block,Meaning,Missing,StataName
+Task,VARCHAR,Keyword,"The classification task: ClassDetailed, ClassBroad or AmendType.",never,Task
+Class,VARCHAR,Keyword,The category the term points to.,never,Class
+Rank,INTEGER,Keyword,"Rank of the term within its category, by Power.",never,Rank
+Term,VARCHAR,Keyword,"The keyword: one to three lower-case words, searched in the first 256 words of a document.",never,Term
+Power,DOUBLE,Keyword,The term's strength: the lower bound of the Wilson interval of its precision.,never,Power
+Precision,DOUBLE,Keyword,Share of the labelled documents containing the term that belong to the category.,never,Precision
+HitsPos,INTEGER,Keyword,Labelled documents of the category that contain the term.,never,HitsPos
+HitsTot,INTEGER,Keyword,Labelled documents that contain the term.,never,HitsTot
+NFilers,INTEGER,Keyword,Distinct filers among those documents.,never,NFilers
+FilerRatio,DOUBLE,Keyword,NFilers relative to HitsPos: low where one filer's boilerplate carries the term.,never,FilerRatio
+MarginalReach,DOUBLE,Keyword,Share of the category's labelled documents the term reaches that no higher-ranked term reached.,never,MarginalReach
+CumReach,DOUBLE,Keyword,Share reached by this term and all higher-ranked ones together.,never,CumReach
+Folds,INTEGER,Keyword,"Cross-validation folds, of five, in which the term was selected.",never,Folds

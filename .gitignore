@@ -1,0 +1,40 @@
+# .gitignore -- matcon-data-and-methods
+#
+# Nothing below is ever committed. The site's examples read only sample/; the data package (see DATA.md) is used from the
+# pipeline repository, and the pipeline's data folders are ignored here in case a copy lands in this one.
+
+# R / RStudio
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# Secrets
+.Renviron
+**/ApiKeys/
+
+# OS, IDE, Python
+.DS_Store
+.idea/
+__pycache__/
+*.pyc
+.venv/
+
+# Internal notes of the authors: briefs, reports, background reading; never published
+_internal/
+
+# Quarto
+/.quarto/
+**/*.quarto_ipynb
+_rendered/
+
+# Data folders of the pipeline, ignored in case a copy lands here (see DATA.md)
+0_data/
+2_output/
+
+# Stata inputs and outputs. Compustat is licensed and must never be committed; nor is anything built
+# from it.
+stata/input/
+stata/output/
+stata/log/
+*.dta

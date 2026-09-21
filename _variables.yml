@@ -1,0 +1,29 @@
+# Values the site reads with {{< var name >}} or through _common.R. A value starting with TODO is not decided yet and
+# shows on the page as a marked gap. An empty value means "none yet" and is left out of the page.
+paper:
+  title: "The analysis of material contracts: Use of SEC contractual data in accounting research"
+  authors: "Ann-Kristin Grosskopf, Victor Sehn and Matthias Uckert"
+  status: "under review"
+  doi: ""  # none until the paper is published
+data:
+  version: "v1.0.0"
+  # The filing years of the Exhibit 10 attachments in the database.
+  first_year: "1999"
+  last_year: "2024"
+  # Where the parts are shared. Each part's own download link goes into data/parts.csv (Link, with Status published).
+  archive: "Google Drive"
+  archive_doi: ""  # none while the parts are shared from Google Drive
+  package_link: "https://drive.google.com/drive/folders/16w8-Tuy5eYop_h9YihSFGZT7DniN-Il7"  # matcon-data/v1.0.0
+  licence: "CC BY 4.0"
+  licence_models: "CC BY-SA 4.0"
+code:
+  pipeline: "https://github.com/MatthiasUckert/material-contracts"
+  stata: "TODO-STATA-CODE"  # the do-files, once cleaned up; the Stata page says "later" until this is a link
+  rgetedgar: "https://github.com/MatthiasUckert/rGetEDGAR"
+  rgetedgar_tag: "TODO-TAG"  # not printed on the site until the package is tagged
+  rlabeldocs: "https://github.com/MatthiasUckert/rLabelDocs"
+  rlabeldocs_tag: "TODO-TAG"  # not printed on the site until the package is tagged
+site:
+  repository: "https://github.com/MatthiasUckert/matcon-data-and-methods"
+  url: "https://matthiasuckert.github.io/matcon-data-and-methods/"  # once GitHub Pages serves docs/ from main
+  contact: "m.uckert@uva.nl"

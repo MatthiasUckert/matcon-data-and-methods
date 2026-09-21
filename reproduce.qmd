@@ -1,0 +1,29 @@
+---
+title: "Code"
+description: >-
+  Where the code that built the database is, and what needs a WRDS subscription.
+---
+
+```{r}
+#| label: setup
+#| include: false
+source("_common.R")
+```
+
+The code that built [the database](data.qmd#part-core) is in the authors' repository
+[material-contracts]({{< var code.pipeline >}}): R and Quarto runbooks with the Python extractors and classifiers
+they call. It is the working repository of the paper, not a packaged replication. The paper's Stata code has
+[a page of its own](stata.qmd).
+
+Two tools of the work have repositories of their own:
+
+- [rGetEDGAR]({{< var code.rgetedgar >}}), the R package that retrieved the documents from EDGAR.
+- [rLabelDocs]({{< var code.rlabeldocs >}}), the Shiny application the labels were given with.
+
+## What needs WRDS
+
+Compustat is licensed and not published. `EstiSample` marks the attachments in the paper's estimation sample, which
+needs a Compustat match on `CIK` and the filing date, `DateFiled`; `SampleStepCode` and `SampleStepDesc` record the
+step of the sample selection at which an attachment leaves the sample. Rebuilding the match needs a WRDS
+subscription; the code is in [material-contracts]({{< var code.pipeline >}}). Neither the database nor any example on
+this site needs WRDS.
