@@ -36,6 +36,9 @@ format:
     lang: en-GB
     css: styles.css
     code-copy: true
+    code-fold: true
+    code-summary: "Show code"
+    anchor-sections: true
     df-print: kable
 
 filters:

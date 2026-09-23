@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="Where the paper’s Stata code will be published, what it needs, and how to read the tables and slice a span in Stata.">
+<meta name="description" content="Where the paper’s Stata code will be published and what it needs.">
 
 <title>Stata – Material contracts: data and methods</title>
 <style>
@@ -23,41 +23,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -159,15 +124,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
-   
-  <ul>
-  <li><a href="#reading-the-tables" id="toc-reading-the-tables" class="nav-link active" data-scroll-target="#reading-the-tables">Reading the tables</a></li>
-  <li><a href="#slicing-a-span" id="toc-slicing-a-span" class="nav-link" data-scroll-target="#slicing-a-span">Slicing a span</a></li>
-  </ul>
-</nav>
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+        
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -179,7 +137,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div>
   <div class="description">
-    Where the paper’s Stata code will be published, what it needs, and how to read the tables and slice a span in Stata.
+    Where the paper’s Stata code will be published and what it needs.
   </div>
 </div>
 
@@ -196,22 +154,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>The paper’s regressions and several of its tables and figures are estimated in Stata. The do-files will be published on this page once they are cleaned up. They read a Stata copy of the contracts table of <a href="./data.html#part-core">the database</a> and Compustat data from WRDS, which are licensed and not published (<a href="./reproduce.html#what-needs-wrds">what needs WRDS</a>).</p>
-<section id="reading-the-tables" class="level2">
-<h2 class="anchored" data-anchor-id="reading-the-tables">Reading the tables</h2>
-<p>The tables of the database are parquet files, and no <code>.dta</code> files are published. Stata reads a table once it has been converted with R or Python; the codebooks give each column’s name in Stata (<code>StataName</code>).</p>
-</section>
-<section id="slicing-a-span" class="level2">
-<h2 class="anchored" data-anchor-id="slicing-a-span">Slicing a span</h2>
-<p>Span offsets count characters from 0, the end exclusive (<a href="./data.html#span-offsets-are-0-based-and-half-open">span offsets</a>). Stata’s <code>usubstr()</code> counts characters where <code>substr()</code> counts bytes, so a span is sliced with <code>usubstr()</code>. For the date spans, with each span’s document text, <code>TextRaw</code>, merged on <code>DocID</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">generate</span> DateSlice = usubstr( <span class="co">///</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  TextRaw,                    <span class="co">/// the document's text, as every offset reads it</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  DateStart + 1,              <span class="co">/// Stata counts from 1, the offsets from 0</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  DateStop - DateStart        <span class="co">/// a length in characters, not an end</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The paper’s regressions and several of its tables and figures are estimated in Stata. The do-files will be published on this page once they have been cleaned up. The do-files read the contracts table of <a href="./data.html#part-core">the database</a> and Compustat data from WRDS, which is licensed and not published (<a href="./reproduce.html#what-needs-wrds">what needs WRDS</a>).</p>
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

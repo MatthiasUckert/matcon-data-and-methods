@@ -26,4 +26,5 @@ code:
 site:
   repository: "https://github.com/MatthiasUckert/matcon-data-and-methods"
   url: "https://matthiasuckert.github.io/matcon-data-and-methods/"  # once GitHub Pages serves docs/ from main
+  sample: "https://github.com/MatthiasUckert/matcon-data-and-methods/tree/main/sample"  # the sample the examples run on
   contact: "m.uckert@uva.nl"

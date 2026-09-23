@@ -1,8 +1,9 @@
 ---
 title: "The methods"
 description: >-
-  How the contracts were classified and their entities extracted, and how to turn the published spans into
-  variables of your own. Each method comes with a worked example on the sample.
+  How the contracts were classified and their entities extracted, how to apply the published classifiers and the
+  extraction image, and how to turn the published spans into variables. Each method comes with an example on the
+  sample.
 ---
 
 ```{r}
@@ -28,11 +29,12 @@ if (any(arrow::read_parquet("sample/core/Contracts.parquet")$KwAmendTypeTerm %in
 }
 ```
 
-Every example on this page reads the sample in `sample/`: `r comp$rows` rows of the contracts table. Of these,
-`r comp$labelled` are labelled contracts, `r comp$per_category` from each of the `r comp$categories` detailed
-categories; `r comp$rejected` are attachments the text screen rejected; and `r comp$copy_rows` are the registrant
-copies of `r comp$copy_attachments` attachments whose filing names more than one registrant. The sample shows how the
-files work, not what the corpus looks like.
+Every example on this page reads the sample in the [`sample/` folder]({{< var site.sample >}}) of the site's
+repository: `r comp$rows` rows of the contracts table. Of these, `r comp$labelled` are labelled contracts,
+`r comp$per_category` from each of the `r comp$categories` detailed categories; `r comp$rejected` are attachments the
+text screen rejected; and `r comp$copy_rows` are the registrant copies of `r comp$copy_attachments` attachments whose
+filing names more than one registrant. The sample illustrates the file structure; it is not representative of the
+corpus.
 
 ## Classification {#classification}
 
@@ -69,7 +71,7 @@ contracts |>
 ### Worked example {#classification-example}
 
 The published labels sit in the contracts table; the reference labels of the labelled contracts sit in the labelled
-sample. The annotators gave them with [rLabelDocs]({{< var code.rlabeldocs >}}), a Shiny application for labelling
+sample. The labels were given with [rLabelDocs]({{< var code.rlabeldocs >}}), a Shiny application for labelling
 documents, and `LabelRound` records the labelling round, `Round1` or `Round2` (Online Appendix C of the paper).
 
 ```{r}
@@ -165,20 +167,95 @@ not seen comes from the cross-validation over the folds, not from this compariso
 On the `r sum(!compared$HierConsistent)` labelled contracts where `HierConsistent` is `FALSE`, the detailed model
 agrees with the reference label in `r sum(!compared$HierConsistent & compared$Class == compared$LabelDetailed)`.
 
-### Applying a model to your own documents
+### Applying a classifier {#applying-a-classifier}
 
 [The classifiers part](data.qmd#part-models) holds the `r num("models.count")` models as zip archives, one per task
-and context length. Beside them, `models_index.csv` maps each archive to the folder it unpacks to; its
-`LabelledPublished` marks the models whose output is published, and `Selected` and `MacroF1` the configuration
-cross-validation chose for each task. `deployed.parquet` is the record of that selection; it lists the broad model at
-512 tokens. `README.md` in the same folder is the usage guide: it holds the code that applies a model and three rules
-for reproducing a published column. The input is `TextRaw` from [the documents part](data.qmd#part-text), the context
-length is the one in the archive's name, and the label mapping comes from the model.
+and context length. All start from Legal-BERT and were trained on the `r fmt_int(num("rows.labels"))` labelled
+contracts in `core/Labels.parquet`.
+
+| Archive | Task | Categories | Context | Labelled the published data |
+|:--|:--|--:|--:|:--|
+| `ClassDetailed_L256.zip` | Contract type (`Class`) | `r comp$categories` | 256 tokens | yes |
+| `ClassDetailed_L512.zip` | Contract type | `r comp$categories` | 512 tokens | no |
+| `ClassBroad_L256.zip` | Broad type from a separate model (`ClassBroad`) | `r n_broad` | 256 tokens | yes |
+| `ClassBroad_L512.zip` | Broad type from a separate model | `r n_broad` | 512 tokens | no |
+| `AmendType_L256.zip` | Original or amendment (`AmendType`) | 2 | 256 tokens | yes |
+| `AmendType_L512.zip` | Original or amendment | 2 | 512 tokens | no |
+
+Beside the archives, `models_index.csv` maps each archive to the folder it unpacks to, and `deployed.parquet` records
+the configuration cross-validation selected for each task, with its macro-F1. `README.md` in the same folder is the
+usage guide; this section repeats it.
+
+**What an archive holds.** Each archive unpacks to one folder named after the training run; the name spells out the
+context length (`L`), epochs (`E`), batch size (`B`), learning rate (`LR`), class weights (`W1` on, `W0` off) and
+seed (`S`). Inside it:
+
+```
+<Task>__nlpaueb-legal-bert-base-uncased__TText_L<len>_E<epochs>_B32_LR<rate>_W<weights>_S42__FINAL/
+  model/            the model: config.json with the label mapping (id2label), the weights
+                    (model.safetensors) and the tokenizer (tokenizer.json, vocab.txt, ...)
+  config.json       the training run: data, labels, hyperparameters, software versions
+  train_log.parquet the training loss per epoch
+  run.log           the run's log
+```
+
+**Running a model.** The models were trained with Python 3.12, PyTorch 2.10 and transformers 4.49; recent versions
+of both libraries load them. A GPU helps but is not needed.
+
+```bash
+pip install torch transformers pandas pyarrow
+unzip ClassDetailed_L256.zip
+```
+
+```python
+import pandas as pd
+import torch
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+model_dir = "ClassDetailed__nlpaueb-legal-bert-base-uncased__TText_L256_E6_B32_LR2e-05_W1_S42__FINAL/model"
+max_len = 256                      # the context length the model was trained with: L256 or L512
+
+tok = AutoTokenizer.from_pretrained(model_dir)
+model = AutoModelForSequenceClassification.from_pretrained(model_dir).eval()
+id2label = {int(k): v for k, v in model.config.id2label.items()}
+
+docs = pd.read_parquet("text/exhibit10/exhibit10_2012.parquet", columns=["DocID", "TextRaw"]).head(32)
+enc = tok(docs["TextRaw"].fillna("").tolist(), truncation=True, max_length=max_len,
+          padding="max_length", return_tensors="pt")
+with torch.inference_mode():
+    probs = torch.softmax(model(**enc).logits, dim=-1)
+top = probs.topk(2, dim=-1)
+
+docs["Label"] = [id2label[i] for i in top.indices[:, 0].tolist()]
+docs["Prob"] = top.values[:, 0].tolist()
+docs["Label2"] = [id2label[i] for i in top.indices[:, 1].tolist()]
+docs["Prob2"] = top.values[:, 1].tolist()
+```
+
+**Three rules the published labels follow.** Your own use should follow them too:
+
+- The input is `TextRaw` from [the documents part](data.qmd#part-text), the document's full text, unchanged.
+- The model reads the first `max_len` tokens and ignores the rest (`truncation=True`). Use the length in the
+  archive's name; a 256-token model given 512 tokens is not the model that was scored.
+- The label mapping travels with the model (`id2label` in `model/config.json`); never rebuild it from a list of
+  category names.
+
+`Label`, `Prob`, `Label2` and `Prob2` correspond to `BertClassDetailed`, `BertClassDetailedProb`,
+`BertClassDetailed2` and `BertClassDetailed2Prob` in the contracts table, and likewise for the other two tasks. The
+documents part holds exactly the text the models read, so a 256-token model run on it reproduces those columns, up
+to the last digits of a probability that differ between processors.
+
+**Rolling up.** To roll a detailed label up to the broad category the paper uses (`ClassRollup`): take the part
+before the colon, with `Customer / Supplier` and `R&D` rolling up to `Purchases and Sales`, and `Leases`, `Licenses`
+and `Other` standing alone. The taxonomy table above shows every pair.
+
+The models are derived from Legal-BERT, published under {{< var data.licence_models >}}, and are published under the
+same licence.
 
 ## The keyword classifier {#keywords}
 
-Beside each transformer label the contracts table carries a label from a keyword classifier, which its codebook
-calls an independent second instrument. The core part publishes its lexicon as `KeywordTerms.parquet`:
+Beside each transformer label the contracts table carries a label from a keyword classifier, an independent second
+instrument. The core part publishes its lexicon as `KeywordTerms.parquet`:
 `r fmt_int(num("rows.keywordterms"))` rows, one per task, category and term, with `Task` naming the task
 (`ClassDetailed`, `ClassBroad` or `AmendType`). `Term` is the keyword, one to three lower-case words searched in the
 first 256 words of a document. `Precision` is the share of the labelled documents containing it that belong to its
@@ -272,9 +349,8 @@ The organisation candidates come from LexNLP 2.3.0, run inside the container ima
 [the extraction image part](data.qmd#part-lexnlp); places, dates, law clauses and redaction markers come from the
 pipeline's own extractors. Rules written in R, part of the pipeline, decide which candidates become spans: they
 match organisations to the registrant and give each party a role, attach places to parties, read the jurisdiction a
-law clause names, and place each date relative to the filing date. `lexnlp/README.md` in the extraction image part
-says how to load and run the image. It is built for `linux/arm64`; on an Intel or AMD machine Docker runs it under
-emulation.
+law clause names, and place each date relative to the filing date.
+[Running the extraction image](#running-the-extraction-image) says how to apply the image to documents of your own.
 
 | Span file | One row per |
 |:--|:--|
@@ -403,6 +479,59 @@ for (kind in names(spans)) {
 }
 cat(":::\n")
 ```
+
+### Running the extraction image {#running-the-extraction-image}
+
+`contracts-lexnlp-17a366b025fe.tar.gz` in [the extraction image part](data.qmd#part-lexnlp) is the Docker image that
+extracted the organisation candidates of the database: LexNLP 2.3.0 in Python 3.8, with the NLTK data it needs
+baked in, so it runs offline. The rules that turn candidates into the published parties are part of the pipeline,
+not of the image. `README.md` beside the image is the usage guide; this section repeats it.
+
+**Loading it.**
+
+```bash
+docker load -i contracts-lexnlp-17a366b025fe.tar.gz     # restores the image as contracts-lexnlp:latest
+```
+
+The image is built for 64-bit ARM (`linux/arm64`, native on Apple Silicon). On an Intel or AMD machine Docker runs
+it under emulation, which works but is several times slower. To run natively there, rebuild it from the `Dockerfile`
+in the pipeline repository ([material-contracts]({{< var code.pipeline >}}), folder `contracts-lexnlp/`, at commit
+`e3f97216ef96d58d6001faf23bc2e5017eed5b7a`) and pin its packages to the `requirements.lock.txt` published beside the
+image; a rebuild is the same software, not the same image.
+
+**Running it.** The image reads parquet files with a `DocID` and a `TextRaw` column, which is what
+[the documents part](data.qmd#part-text) holds, and writes one parquet file with one row per match:
+
+```bash
+docker run --rm -v "$PWD":/work contracts-lexnlp:latest \
+  exhibit10_2012.parquet \
+  --output lexnlp_org_2012.parquet \
+  --label ORG \
+  --n-process 8
+```
+
+| Option | Default | Meaning |
+|:--|:--|:--|
+| inputs | | one or more parquet files or folders, relative to the mounted directory |
+| `--output` | | the parquet file to write |
+| `--label` | `ORG` | what to extract: `ORG`, `DATE`, `GPE`, `MONEY`, `AMOUNT`, `PERCENT`, `RATIO`, `DURATION` |
+| `--id-col`, `--text-col` | `DocID`, `TextRaw` | the input columns |
+| `--timeout` | 60 | seconds per extractor and document; past it, the document keeps its other rows |
+| `--max-chars` | 0 (off) | read only the first N characters of each document |
+| `--n-process` | 1 | worker processes; 0 or less uses all cores |
+
+The output has `DocID`, `Start`, `Stop`, `Span`, `Label`, `LabelRaw`, `Engine` and `Model`, plus columns specific to
+each label (for `ORG`: `Name`, `NameAbbr`, `TypeFull`, `TypeAbbr`, `TypeLabel`, `Description`). Offsets follow the
+same rule as the published spans: `TextRaw[Start:Stop] == Span`. A document without any match appears once, with
+empty offsets, so every input document is accounted for.
+
+The database used the image for `ORG` only; its places, dates, law clauses and redaction markers come from the
+pipeline's own extractors. The documents part holds exactly the text the image read. The wrapper that runs LexNLP is
+inside the image at `/app/extract_lexnlp.py` and in the pipeline repository in `contracts-lexnlp/` at the commit
+above.
+
+LexNLP is licensed under the GNU Affero General Public License v3.0 (see `lexnlp/NOTICE.md` in the part). The image
+contains it and is distributed under that licence.
 
 ## From spans to variables {#spans-to-variables}
 

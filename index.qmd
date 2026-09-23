@@ -24,28 +24,28 @@ if (nrow(paper_years) != 1 || anyNA(paper_years)) {
 }
 ```
 
-This site publishes the data and the methods of the paper below. The data package holds the material contracts, Exhibit
-10 to a filing, that registrants filed with the SEC with forms 10-K, 10-Q, 8-K, 20-F, S-1, S-4, F-1 and F-4 and their
-amendments between {{< var data.first_year >}} and {{< var data.last_year >}}: `r fmt_int(num("rows.contracts"))`
-registrant copies of these attachments, classified by type, with the parties, places, law clauses, dates, terms
-and redactions extracted from their text, and the documents themselves. The paper's sample starts in
+This site documents the data and the methods of the paper cited below. The data package holds the material
+contracts filed with the SEC as Exhibit 10 to forms 10-K, 10-Q, 8-K, 20-F, S-1, S-4, F-1 and F-4 and their amendments
+between {{< var data.first_year >}} and {{< var data.last_year >}}: `r fmt_int(num("rows.contracts"))` registrant
+copies of these attachments, each classified by contract type, with the parties, places, law clauses, dates, terms
+and redactions extracted from the text, and the documents themselves. The paper's sample starts in
 `r paper_years[1, 2]`.
 
-## Four ways in
+## What is on this site
 
-- **[Data](data.qmd).** What each part of the data package holds, the tables and their columns, and three things to
-  know before counting anything.
-- **[Methods](methods.qmd).** How the contracts were classified and their entities extracted, and how to turn the
-  published spans into variables of your own, each with an example on the sample.
-- **[Stata](stata.qmd).** Where the paper's Stata code will be published, what it needs, and how to read the tables
-  and slice a span in Stata.
+- **[Data](data.qmd).** The parts of the data package, the tables and their columns, and the conventions of the
+  tables.
+- **[Methods](methods.qmd).** How the contracts were classified and their entities extracted, how to apply the
+  published classifiers and the extraction image, and how to turn the published spans into variables. Each method
+  comes with an example on the sample.
+- **[Stata](stata.qmd).** Where the paper's Stata code will be published and what it needs.
 - **[Code](reproduce.qmd).** Where the code that built the database is, and what needs a WRDS subscription.
 
-Every R example on this site runs, from the root of a clone of the [site's repository]({{< var site.repository >}}),
-on the sample in its `sample/` folder: `r composition$per_category` labelled contracts from each of the
-`r composition$categories` detailed categories, `r composition$rejected` rejected attachments and all
-`r composition$copy_rows` registrant copies of `r composition$copy_attachments` attachments whose filing names several
-registrants.
+Every R example on this site runs on the sample in the [`sample/` folder]({{< var site.sample >}}) of the site's
+repository, from the root of a clone of that repository: `r composition$per_category` labelled contracts from each of
+the `r composition$categories` detailed categories, `r composition$rejected` rejected attachments and all
+`r composition$copy_rows` registrant copies of `r composition$copy_attachments` attachments whose filing names
+several registrants.
 
 ## The parts of the data package
 
@@ -85,9 +85,9 @@ tibble::tibble(
 ```
 
 The package is version {{< var data.version >}}: `r fmt_bytes(published_total("bytes"))` in
-`r fmt_int(published_total("files"))` files, the parts above and a README at the root, beside a checksum manifest. The
-parts are shared from {{< var data.archive >}}, each with its own download link;
-[getting a part](data.qmd#getting-a-part) says how to check a download.
+`r fmt_int(published_total("files"))` files. Each part is a folder with its own download link on
+{{< var data.archive >}}; a README and a checksum manifest sit at the root of the package
+([checking a download](data.qmd#checking-a-download)).
 
 ## The paper and how to cite it
 

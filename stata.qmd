@@ -1,7 +1,7 @@
 ---
 title: "Stata"
 description: >-
-  Where the paper's Stata code will be published, what it needs, and how to read the tables and slice a span in Stata.
+  Where the paper's Stata code will be published and what it needs.
 ---
 
 ```{r}
@@ -9,32 +9,12 @@ description: >-
 #| include: false
 source("_common.R")
 do_files <- link_or_text(
-  vars$code$stata,                                                          # set once the do-files are published
-  "Download the do-files",                                                  # the link text from then on
-  "The do-files will be published on this page once they are cleaned up"   # what the page says until then
+  vars$code$stata,                                                            # set once the do-files are published
+  "Download the do-files",                                                    # the link text from then on
+  "The do-files will be published on this page once they have been cleaned up"  # what the page says until then
 )
 ```
 
-The paper's regressions and several of its tables and figures are estimated in Stata. `r do_files`. They read a
-Stata copy of the contracts table of [the database](data.qmd#part-core) and Compustat data from WRDS, which are
-licensed and not published ([what needs WRDS](reproduce.qmd#what-needs-wrds)).
-
-## Reading the tables
-
-The tables of the database are parquet files, and no `.dta` files are published. Stata reads a table once it has been
-converted with R or Python; the codebooks give each column's name in Stata (`StataName`).
-
-## Slicing a span
-
-Span offsets count characters from 0, the end exclusive
-([span offsets](data.qmd#span-offsets-are-0-based-and-half-open)). Stata's `usubstr()` counts characters where
-`substr()` counts bytes, so a span is sliced with `usubstr()`. For the date spans, with each span's document text,
-`TextRaw`, merged on `DocID`:
-
-```stata
-generate DateSlice = usubstr( ///
-  TextRaw,                    /// the document's text, as every offset reads it
-  DateStart + 1,              /// Stata counts from 1, the offsets from 0
-  DateStop - DateStart        /// a length in characters, not an end
-)
-```
+The paper's regressions and several of its tables and figures are estimated in Stata. `r do_files`. The do-files read
+the contracts table of [the database](data.qmd#part-core) and Compustat data from WRDS, which is licensed and not
+published ([what needs WRDS](reproduce.qmd#what-needs-wrds)).

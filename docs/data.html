@@ -182,7 +182,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#part-models" id="toc-part-models" class="nav-link" data-scroll-target="#part-models">The classifiers</a></li>
   <li><a href="#part-lexnlp" id="toc-part-lexnlp" class="nav-link" data-scroll-target="#part-lexnlp">The extraction image</a></li>
   </ul></li>
-  <li><a href="#getting-a-part" id="toc-getting-a-part" class="nav-link" data-scroll-target="#getting-a-part">Getting a part</a></li>
   <li><a href="#reading-the-files" id="toc-reading-the-files" class="nav-link" data-scroll-target="#reading-the-files">Reading the files</a></li>
   <li><a href="#the-tables-of-the-core-part" id="toc-the-tables-of-the-core-part" class="nav-link" data-scroll-target="#the-tables-of-the-core-part">The tables of the core part</a>
   <ul class="collapse">
@@ -206,7 +205,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#spans" id="toc-spans" class="nav-link" data-scroll-target="#spans">Spans</a></li>
   <li><a href="#text" id="toc-text" class="nav-link" data-scroll-target="#text">Text</a></li>
   </ul></li>
-  <li><a href="#three-things-to-know-before-counting" id="toc-three-things-to-know-before-counting" class="nav-link" data-scroll-target="#three-things-to-know-before-counting">Three things to know before counting</a>
+  <li><a href="#conventions-of-the-tables" id="toc-conventions-of-the-tables" class="nav-link" data-scroll-target="#conventions-of-the-tables">Conventions of the tables</a>
   <ul class="collapse">
   <li><a href="#the-unit-of-observation-is-the-registrant-copy" id="toc-the-unit-of-observation-is-the-registrant-copy" class="nav-link" data-scroll-target="#the-unit-of-observation-is-the-registrant-copy">The unit of observation is the registrant copy</a></li>
   <li><a href="#rejected-attachments-stay-in-the-file" id="toc-rejected-attachments-stay-in-the-file" class="nav-link" data-scroll-target="#rejected-attachments-stay-in-the-file">Rejected attachments stay in the file</a></li>
@@ -217,6 +216,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#not-in-the-package" id="toc-not-in-the-package" class="nav-link" data-scroll-target="#not-in-the-package">Not in the package</a></li>
   </ul></li>
   <li><a href="#licences" id="toc-licences" class="nav-link" data-scroll-target="#licences">Licences</a></li>
+  <li><a href="#checking-a-download" id="toc-checking-a-download" class="nav-link" data-scroll-target="#checking-a-download">Checking a download</a></li>
   </ul>
 </nav>
     </div>
@@ -247,8 +247,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>The data package v1.0.0 comes in 5 parts: 123 files besides the checksum manifest, 49.5 GB in all, the parts below and a README at the root of the package. Each part is a folder that can be downloaded on its own. The parts are shared from Google Drive, each with its own download link.</p>
-<p>Every example on this site reads the sample in <code>sample/</code> of the <a href="https://github.com/MatthiasUckert/matcon-data-and-methods">site’s repository</a>. It holds 180 contracts of the labelled sample, 15 from each of the 12 detailed categories, plus 3 attachments the text screen rejected and all 31 registrant copies of 3 attachments filed by several registrants, so that the checks below have something to show: 214 rows in all, with the rows every table and span file holds for them. To run an example, clone the repository and run the code from its root. The examples need the R packages <code>arrow</code>, <code>dplyr</code>, <code>stringi</code> and <code>tibble</code>; none needs the data package.</p>
+<p>The data package v1.0.0 has 5 parts: 123 files, 49.5 GB in all, plus a README and a checksum manifest at the root of the package. Each part is a folder that can be downloaded on its own. The parts are shared from Google Drive, each with its own download link; <a href="https://drive.google.com/drive/folders/16w8-Tuy5eYop_h9YihSFGZT7DniN-Il7">the whole package</a> has a link of its own.</p>
+<p>Every example on this site reads the sample in the <a href="https://github.com/MatthiasUckert/matcon-data-and-methods/tree/main/sample"><code>sample/</code> folder</a> of the site’s repository. The sample holds 180 contracts of the labelled sample, 15 from each of the 12 detailed categories; 3 attachments the text screen rejected; and all 31 registrant copies of 3 attachments filed by several registrants, so that the conventions below can be shown. That is 214 rows of the contracts table, with the rows every other table and span file holds for them. The examples run from the root of a clone of the repository and need the R packages <code>arrow</code>, <code>dplyr</code>, <code>stringi</code> and <code>tibble</code>; none needs the data package.</p>
 <section id="the-parts" class="level2">
 <h2 class="anchored" data-anchor-id="the-parts">The parts</h2>
 <section id="part-core" class="level3">
@@ -292,38 +292,36 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 </section>
 </section>
-<section id="getting-a-part" class="level2">
-<h2 class="anchored" data-anchor-id="getting-a-part">Getting a part</h2>
-<p>Each part above links to its own folder; <a href="https://drive.google.com/drive/folders/16w8-Tuy5eYop_h9YihSFGZT7DniN-Il7">the whole package</a> has a link of its own. At the root of the package are a <code>README.md</code> and a <code>MANIFEST.sha256</code>, which lists every file with its SHA-256 checksum. Google Drive may deliver a large folder as several zip files; unpack them into one folder, with <code>MANIFEST.sha256</code> at its root, before checking. From that folder (macOS, Linux), the first line checks the whole package and the second only the parts its pattern names, here <code>core</code> and <code>spans</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">shasum</span> <span class="at">-a</span> 256 <span class="at">-c</span> MANIFEST.sha256</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="at">-E</span> <span class="st">'  (core|spans)/'</span> MANIFEST.sha256 <span class="kw">|</span> <span class="ex">shasum</span> <span class="at">-a</span> 256 <span class="at">-c</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
 <section id="reading-the-files" class="level2">
 <h2 class="anchored" data-anchor-id="reading-the-files">Reading the files</h2>
-<p>The tables are parquet files. The package’s README reads them as follows:</p>
+<p>The tables are parquet files:</p>
 <ul>
 <li>R: <code>arrow::read_parquet("core/Contracts.parquet")</code></li>
 <li>Python: <code>pandas.read_parquet("core/Contracts.parquet")</code></li>
 <li>SQL: <code>duckdb -c "SELECT count(*) FROM 'core/Contracts.parquet'"</code></li>
+<li>Stata: StataNow reads parquet with <code>import parquet</code>; other editions convert a table with R (<code>haven::write_dta()</code>) or Python (<code>pandas.DataFrame.to_stata()</code>) first, using the <code>StataName</code> column of the codebooks.</li>
 </ul>
-<p>No <code>.dta</code> files are published; <a href="./stata.html">the Stata page</a> says how to read the tables in Stata.</p>
+<p>No <code>.dta</code> files are published.</p>
 <p>The sample keeps the package’s folders, file names and columns, so an example moves to the package by replacing <code>sample/</code> with the root of the package. The documents are the exception. The sample keeps them in one file, <code>text/exhibit10/exhibit10_sample.parquet</code>, where the package has one file per type and filing year, <code>text/&lt;type&gt;/&lt;type&gt;_&lt;year&gt;.parquet</code>. The sample holds Exhibit 10 attachments only, without the <code>HTML</code> column, the document as retrieved from EDGAR. It carries no contract index, no models and no extraction image.</p>
 <p>A file too large for memory is opened lazily and filtered before it is collected:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>exhibits <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">open_dataset</span>(<span class="st">"sample/text/exhibit10"</span>)  <span class="co"># a folder of parquet files, opened as one table</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>wanted <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"sample/core/Contracts.parquet"</span>,  <span class="co"># the contracts table</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_select =</span> <span class="st">"DocID"</span>              <span class="co"># only the key is needed here</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>)<span class="sc">$</span>DocID[<span class="dv">1</span>]                          <span class="co"># one document of the sample</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>exhibits <span class="sc">|&gt;</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(DocID <span class="sc">%in%</span> wanted) <span class="sc">|&gt;</span>  <span class="co"># the documents a study needs</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    DocID,  <span class="co"># the document</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    YQ,     <span class="co"># its filing year and quarter</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    DocExt  <span class="co"># its file type as filed</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">collect</span>()  <span class="co"># the rows are read here</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>exhibits <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">open_dataset</span>(<span class="st">"sample/text/exhibit10"</span>)  <span class="co"># a folder of parquet files, opened as one table</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>wanted <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"sample/core/Contracts.parquet"</span>,  <span class="co"># the contracts table</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_select =</span> <span class="st">"DocID"</span>              <span class="co"># only the key is needed here</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>)<span class="sc">$</span>DocID[<span class="dv">1</span>]                          <span class="co"># one document of the sample</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>exhibits <span class="sc">|&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(DocID <span class="sc">%in%</span> wanted) <span class="sc">|&gt;</span>  <span class="co"># the documents a study needs</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    DocID,  <span class="co"># the document</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    YQ,     <span class="co"># its filing year and quarter</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    DocExt  <span class="co"># its file type as filed</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">collect</span>()  <span class="co"># the rows are read here</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -349,7 +347,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="the-tables-of-the-core-part" class="level2">
 <h2 class="anchored" data-anchor-id="the-tables-of-the-core-part">The tables of the core part</h2>
-<p>The core part holds the tables below with their codebooks, the contract index, the labelled sample and the keyword terms. The meanings shown are the codebook’s own.</p>
+<p>The core part holds the tables below with their codebooks, the contract index, the labelled sample and the keyword terms. The column meanings shown are taken from the codebooks.</p>
 <section id="contracts" class="level3">
 <h3 class="anchored" data-anchor-id="contracts">Contracts</h3>
 <p>One row per registrant copy of an Exhibit 10 attachment: 1,462,939 rows, of which the sample holds 214. The filing, the classification and the content variables of the contract sit side by side; below are its keys, the filing, the rejection and copy flags, the labels and the sample flags:</p>
@@ -668,13 +666,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="the-contract-index-the-labelled-sample-and-the-keyword-terms" class="level3">
 <h3 class="anchored" data-anchor-id="the-contract-index-the-labelled-sample-and-the-keyword-terms">The contract index, the labelled sample and the keyword terms</h3>
 <p><code>ContractIndex.csv.gz</code> locates each contract on EDGAR, keyed on <code>DocID</code>: the filing (<code>AccessionNumber</code>, <code>CIK</code>, <code>CompanyName</code>, <code>FormType</code>, <code>DateFiled</code>), the attachment within it (<code>DocName</code>, <code>DocSeq</code>, <code>DocDesc</code>), its labels and the two EDGAR links; <a href="#contractindex">its codebook below</a> lists every column. It is a compressed CSV, so it opens without a parquet reader.</p>
-<p><code>Labels.parquet</code> is the labelled sample: one row per labelled contract with the annotators’ labels and the cross-validation fold in which it was held out (<code>Fold</code>), 4,398 rows, of which the sample holds 180.</p>
+<p><code>Labels.parquet</code> is the labelled sample: one row per labelled contract with the reference labels and the cross-validation fold in which it was held out (<code>Fold</code>), 4,398 rows, of which the sample holds 180.</p>
 <p><code>KeywordTerms.parquet</code> holds the keyword terms of all three classification tasks, 160 rows, with <code>Task</code> naming the task a term belongs to. It is described with <a href="./methods.html#keywords">the keyword classifier</a>.</p>
 </section>
 </section>
 <section id="the-codebooks" class="level2">
 <h2 class="anchored" data-anchor-id="the-codebooks">The codebooks</h2>
-<p>Every table in <code>core/</code> has a codebook beside it (<code>*_Codebook.csv</code>), one row per column with its type and meaning. The span files share one, whose <code>File</code> column names the file a row describes, and the documents in <code>text/</code> have their own. The sample holds them where the package does. Every column keeps its name in Stata. The search box above each codebook filters its rows.</p>
+<p>Every table in <code>core/</code> has a codebook beside it (<code>*_Codebook.csv</code>), one row per column with its type and meaning. The span files share one codebook, whose <code>File</code> column names the file a row describes, and the documents in <code>text/</code> have their own. The sample holds the codebooks where the package does. Every column keeps its name in Stata. The search box above each codebook filters its rows.</p>
 <section id="contracts-1" class="level3">
 <h3 class="anchored" data-anchor-id="contracts-1">Contracts</h3>
 <div class="cell">
@@ -767,28 +765,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </section>
 </section>
-<section id="three-things-to-know-before-counting" class="level2">
-<h2 class="anchored" data-anchor-id="three-things-to-know-before-counting">Three things to know before counting</h2>
-<p>The examples below start from the contracts table of the sample:</p>
+<section id="conventions-of-the-tables" class="level2">
+<h2 class="anchored" data-anchor-id="conventions-of-the-tables">Conventions of the tables</h2>
+<p>Three conventions matter for any count. The examples below start from the contracts table of the sample:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/core/Contracts.parquet"</span>)  <span class="co"># core/Contracts.parquet in the package</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/core/Contracts.parquet"</span>)  <span class="co"># core/Contracts.parquet in the package</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 </div>
 <section id="the-unit-of-observation-is-the-registrant-copy" class="level3">
 <h3 class="anchored" data-anchor-id="the-unit-of-observation-is-the-registrant-copy">The unit of observation is the registrant copy</h3>
 <p>One row of the contracts table is one registrant’s copy of one Exhibit 10 attachment. When a filing names two registrants, the same attachment arrives twice, once under each registrant’s CIK. <code>HashDocument</code> identifies the attachment itself and is shared by its copies; <code>DocID</code> identifies the copy. <code>DocID</code> is the registrant’s CIK and the hash of the attachment joined by a hyphen, as the check below confirms; the accession number sits in <code>UrlIndexPage</code> and, under its own name, in the contract index.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">Rows =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),                              <span class="co"># copies in the sample</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Attachments =</span> dplyr<span class="sc">::</span><span class="fu">n_distinct</span>(HashDocument),  <span class="co"># distinct documents among them</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">DocIDIsCikAndHash =</span> <span class="fu">all</span>(  <span class="co"># TRUE when every key is the CIK and the hash, not the accession number</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>      DocID <span class="sc">==</span> <span class="fu">paste</span>(</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        CIK,           <span class="co"># the registrant</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        HashDocument,  <span class="co"># the attachment</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">sep =</span> <span class="st">"-"</span>      <span class="co"># joined as in the published key</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">Rows =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),                              <span class="co"># copies in the sample</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Attachments =</span> dplyr<span class="sc">::</span><span class="fu">n_distinct</span>(HashDocument),  <span class="co"># distinct documents among them</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">DocIDIsCikAndHash =</span> <span class="fu">all</span>(  <span class="co"># TRUE when every key is the CIK and the hash, not the accession number</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      DocID <span class="sc">==</span> <span class="fu">paste</span>(</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        CIK,           <span class="co"># the registrant</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        HashDocument,  <span class="co"># the attachment</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">sep =</span> <span class="st">"-"</span>      <span class="co"># joined as in the published key</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -812,11 +816,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The entity variables were computed once per attachment, on the copy marked <code>PrimaryFiler == 1</code>, and repeated on the other copies. A statistic over contracts rather than over registrant copies therefore keeps only that copy:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    MultFiler,    <span class="co"># 1 where the filing names more than one registrant</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    PrimaryFiler  <span class="co"># 1 on the copy the entity values were computed from</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    MultFiler,    <span class="co"># 1 where the filing names more than one registrant</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    PrimaryFiler  <span class="co"># 1 on the copy the entity values were computed from</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -850,10 +857,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The sample carries such copies, so the filter does something here:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>contracts_unique <span class="ot">&lt;-</span> contracts <span class="sc">|&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(PrimaryFiler <span class="sc">==</span> <span class="dv">1</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(contracts_unique)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>contracts_unique <span class="ot">&lt;-</span> contracts <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(PrimaryFiler <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(contracts_unique)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 186</code></pre>
 </div>
@@ -862,13 +872,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="rejected-attachments-stay-in-the-file" class="level3">
 <h3 class="anchored" data-anchor-id="rejected-attachments-stay-in-the-file">Rejected attachments stay in the file</h3>
-<p><code>Removed</code> marks an attachment that failed the screen for usable text, and <code>RemClass</code> gives the reason. These attachments stay in the table, flagged, so that what was set aside remains visible; an analysis that wants readable contracts filters on <code>Removed</code>.</p>
+<p><code>Removed</code> marks an attachment that failed the screen for usable text, and <code>RemClass</code> gives the reason. These attachments stay in the table, flagged, so that every retrieved attachment is accounted for; an analysis of readable contracts filters on <code>Removed</code>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    Removed,  <span class="co"># TRUE where the attachment failed the screen for usable text</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    RemClass  <span class="co"># why it was set aside</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    Removed,  <span class="co"># TRUE where the attachment failed the screen for usable text</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    RemClass  <span class="co"># why it was set aside</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -902,10 +915,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The sample carries 3 such attachments, so the count above gives their reasons and the filter below drops them:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>contracts_readable <span class="ot">&lt;-</span> contracts_unique <span class="sc">|&gt;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span>Removed)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(contracts_readable)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>contracts_readable <span class="ot">&lt;-</span> contracts_unique <span class="sc">|&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span>Removed)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(contracts_readable)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 183</code></pre>
 </div>
@@ -916,27 +932,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="span-offsets-are-0-based-and-half-open">Span offsets are 0-based and half-open</h3>
 <p>Every span file locates its entity with a start and a stop offset into the published text of the document. The offsets are 0-based and half-open, and they count characters, not bytes. In R the span is <code>stringi::stri_sub(TextRaw, Start + 1, Stop)</code>; in Python it is <code>text[Start:Stop]</code>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">arrow.use_altrep =</span> <span class="cn">FALSE</span>)  <span class="co"># plain R strings, so a text joined to many spans is not converted for each</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>text <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/text/exhibit10/exhibit10_sample.parquet"</span>)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>dates <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/spans/date_spans.parquet"</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>dates <span class="sc">|&gt;</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  utils<span class="sc">::</span><span class="fu">head</span>(<span class="dv">8</span>) <span class="sc">|&gt;</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">inner_join</span>(</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    text,         <span class="co"># the published text the offsets point into</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"DocID"</span>  <span class="co"># a span file and the text share the document key</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">transmute</span>(</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    DocID,                       <span class="co"># the document</span></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    DateStart,                   <span class="co"># 0-based start</span></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    DateStop,                    <span class="co"># half-open stop</span></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Sliced =</span> stringi<span class="sc">::</span><span class="fu">stri_sub</span>(  <span class="co"># what the offsets cut out of the text</span></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>      TextRaw,                   <span class="co"># the published text of the document</span></span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>      DateStart <span class="sc">+</span> <span class="dv">1</span>,             <span class="co"># a 0-based start is R's 1-based first character</span></span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>      DateStop                   <span class="co"># a half-open stop is R's inclusive last character</span></span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    DateText                     <span class="co"># what the span file stores</span></span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">arrow.use_altrep =</span> <span class="cn">FALSE</span>)  <span class="co"># plain R strings, so a text joined to many spans is not converted for each</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>text <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/text/exhibit10/exhibit10_sample.parquet"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>dates <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/spans/date_spans.parquet"</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>dates <span class="sc">|&gt;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  utils<span class="sc">::</span><span class="fu">head</span>(<span class="dv">8</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">inner_join</span>(</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    text,         <span class="co"># the published text the offsets point into</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"DocID"</span>  <span class="co"># a span file and the text share the document key</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">transmute</span>(</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    DocID,                       <span class="co"># the document</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    DateStart,                   <span class="co"># 0-based start</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    DateStop,                    <span class="co"># half-open stop</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Sliced =</span> stringi<span class="sc">::</span><span class="fu">stri_sub</span>(  <span class="co"># what the offsets cut out of the text</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>      TextRaw,                   <span class="co"># the published text of the document</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>      DateStart <span class="sc">+</span> <span class="dv">1</span>,             <span class="co"># a 0-based start is R's 1-based first character</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>      DateStop                   <span class="co"># a half-open stop is R's inclusive last character</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    DateText                     <span class="co"># what the span file stores</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -1020,55 +1039,58 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The same holds for every span file. Each names its offsets after its entity (<code>DateStart</code>, <code>MentionStart</code>, …) and most store the text they found beside them; the governing-law file stores none.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>offset_check <span class="ot">&lt;-</span> <span class="cf">function</span>(file) {</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  spans <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(file) <span class="sc">|&gt;</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">inner_join</span>(</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>      text,         <span class="co"># the published text the offsets point into</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">by =</span> <span class="st">"DocID"</span>  <span class="co"># a span file and the text share the document key</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  start <span class="ot">&lt;-</span> <span class="fu">grep</span>(</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Start$"</span>,      <span class="co"># the first ...Start column is the span's own start</span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">names</span>(spans),  <span class="co"># the columns of this span file</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">value =</span> <span class="cn">TRUE</span>   <span class="co"># the name rather than its position</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  )[<span class="dv">1</span>]</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  end <span class="ot">&lt;-</span> <span class="fu">sub</span>(</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Start$"</span>,  <span class="co"># DateStart, MentionStart, ...</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Stop"</span>,    <span class="co"># ... pair with DateStop, MentionStop, ...</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    start      <span class="co"># the start column found above</span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>  stored <span class="ot">&lt;-</span> <span class="fu">grep</span>(</span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Text$"</span>,       <span class="co"># DateText, PlaceText, SpanText, ...: the text the extractor stored</span></span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">names</span>(spans),  <span class="co"># the columns of this span file</span></span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">value =</span> <span class="cn">TRUE</span>   <span class="co"># the name rather than its position</span></span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>  )[<span class="dv">1</span>]</span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>  sliced <span class="ot">&lt;-</span> stringi<span class="sc">::</span><span class="fu">stri_sub</span>(</span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    spans<span class="sc">$</span>TextRaw,       <span class="co"># the published text of each span's document</span></span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    spans[[start]] <span class="sc">+</span> <span class="dv">1</span>,  <span class="co"># 0-based start to R's 1-based first character</span></span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>    spans[[end]]         <span class="co"># half-open stop is R's inclusive last character</span></span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>  tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">File =</span> <span class="fu">basename</span>(file),                    <span class="co"># the span file</span></span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">Rows =</span> <span class="fu">nrow</span>(spans),                       <span class="co"># rows in the sample</span></span>
-<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">WithOffsets =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(sliced)),        <span class="co"># rows that locate a span</span></span>
-<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">Stored =</span> stored,                          <span class="co"># the column holding the stored text, if any</span></span>
-<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">SliceEqualsStored =</span> <span class="cf">if</span> (<span class="fu">is.na</span>(stored)) {  <span class="co"># spans whose slice is the stored text</span></span>
-<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>      <span class="cn">NA_integer_</span></span>
-<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sum</span>(</span>
-<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>        sliced <span class="sc">==</span> spans[[stored]],  <span class="co"># slice and stored text agree</span></span>
-<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>        <span class="at">na.rm =</span> <span class="cn">TRUE</span>                <span class="co"># a row without offsets has nothing to compare</span></span>
-<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a><span class="fu">list.files</span>(</span>
-<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>  <span class="st">"sample/spans"</span>,           <span class="co"># every span file of the sample</span></span>
-<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>  <span class="at">pattern =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">.parquet$"</span>,  <span class="co"># the codebook beside them is not a span file</span></span>
-<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>  <span class="at">full.names =</span> <span class="cn">TRUE</span>         <span class="co"># read_parquet needs the path, not the name</span></span>
-<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(offset_check) <span class="sc">|&gt;</span></span>
-<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">bind_rows</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>offset_check <span class="ot">&lt;-</span> <span class="cf">function</span>(file) {</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  spans <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(file) <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">inner_join</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>      text,         <span class="co"># the published text the offsets point into</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">by =</span> <span class="st">"DocID"</span>  <span class="co"># a span file and the text share the document key</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  start <span class="ot">&lt;-</span> <span class="fu">grep</span>(</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Start$"</span>,      <span class="co"># the first ...Start column is the span's own start</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">names</span>(spans),  <span class="co"># the columns of this span file</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">value =</span> <span class="cn">TRUE</span>   <span class="co"># the name rather than its position</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  )[<span class="dv">1</span>]</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  end <span class="ot">&lt;-</span> <span class="fu">sub</span>(</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Start$"</span>,  <span class="co"># DateStart, MentionStart, ...</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Stop"</span>,    <span class="co"># ... pair with DateStop, MentionStop, ...</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    start      <span class="co"># the start column found above</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  stored <span class="ot">&lt;-</span> <span class="fu">grep</span>(</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Text$"</span>,       <span class="co"># DateText, PlaceText, SpanText, ...: the text the extractor stored</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">names</span>(spans),  <span class="co"># the columns of this span file</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">value =</span> <span class="cn">TRUE</span>   <span class="co"># the name rather than its position</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>  )[<span class="dv">1</span>]</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>  sliced <span class="ot">&lt;-</span> stringi<span class="sc">::</span><span class="fu">stri_sub</span>(</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    spans<span class="sc">$</span>TextRaw,       <span class="co"># the published text of each span's document</span></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>    spans[[start]] <span class="sc">+</span> <span class="dv">1</span>,  <span class="co"># 0-based start to R's 1-based first character</span></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    spans[[end]]         <span class="co"># half-open stop is R's inclusive last character</span></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>  tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">File =</span> <span class="fu">basename</span>(file),                    <span class="co"># the span file</span></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">Rows =</span> <span class="fu">nrow</span>(spans),                       <span class="co"># rows in the sample</span></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">WithOffsets =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(sliced)),        <span class="co"># rows that locate a span</span></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">Stored =</span> stored,                          <span class="co"># the column holding the stored text, if any</span></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">SliceEqualsStored =</span> <span class="cf">if</span> (<span class="fu">is.na</span>(stored)) {  <span class="co"># spans whose slice is the stored text</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>      <span class="cn">NA_integer_</span></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sum</span>(</span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>        sliced <span class="sc">==</span> spans[[stored]],  <span class="co"># slice and stored text agree</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>        <span class="at">na.rm =</span> <span class="cn">TRUE</span>                <span class="co"># a row without offsets has nothing to compare</span></span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a><span class="fu">list.files</span>(</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>  <span class="st">"sample/spans"</span>,           <span class="co"># every span file of the sample</span></span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>  <span class="at">pattern =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">.parquet$"</span>,  <span class="co"># the codebook beside them is not a span file</span></span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>  <span class="at">full.names =</span> <span class="cn">TRUE</span>         <span class="co"># read_parquet needs the path, not the name</span></span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(offset_check) <span class="sc">|&gt;</span></span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">bind_rows</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -1132,23 +1154,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>A rule that reads a document’s spans in text order sorts them first, for instance with <code>dplyr::arrange(DocID, DateStart)</code>.</p>
 <p>A contract without any identified organisation has one row in <code>org_mentions</code> without a span: a placeholder with <code>PartyRole</code> and <code>MatchKind</code> <code>none</code>. The same contracts have <code>HasNoParty == 1</code> in the contracts table:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>no_party <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/spans/org_mentions.parquet"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="fu">is.na</span>(MentionStart))</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>no_party <span class="sc">|&gt;</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    DocID,      <span class="co"># the document without an organisation</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    PartyRole,  <span class="co"># none: no party was found</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    MatchKind   <span class="co"># none: nothing was matched</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">left_join</span>(</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(  <span class="co"># the flag from the contracts table</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>      contracts,    <span class="co"># one row per contract</span></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>      DocID,        <span class="co"># the same document in the contracts table</span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>      HasNoParty    <span class="co"># 1 where the extractor found no organisation</span></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"DocID"</span>  <span class="co"># one row per document</span></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>no_party <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/spans/org_mentions.parquet"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="fu">is.na</span>(MentionStart))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>no_party <span class="sc">|&gt;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    DocID,      <span class="co"># the document without an organisation</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    PartyRole,  <span class="co"># none: no party was found</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    MatchKind   <span class="co"># none: nothing was matched</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">left_join</span>(</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(  <span class="co"># the flag from the contracts table</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>      contracts,    <span class="co"># one row per contract</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>      DocID,        <span class="co"># the same document in the contracts table</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>      HasNoParty    <span class="co"># 1 where the extractor found no organisation</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"DocID"</span>  <span class="co"># one row per document</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -1192,17 +1217,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The flag records what the extractor returned, not what the contract says:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>named <span class="ot">&lt;-</span> text <span class="sc">|&gt;</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(DocID <span class="sc">%in%</span> no_party<span class="sc">$</span>DocID) <span class="sc">|&gt;</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">transmute</span>(</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    DocID,                                             <span class="co"># the document without an organisation mention</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">NamedCompany =</span> stringi<span class="sc">::</span><span class="fu">stri_extract_first_regex</span>(  <span class="co"># the company the text names</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>      TextRaw,                                                    <span class="co"># the published text</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">"[A-Z][</span><span class="sc">\\</span><span class="st">w&amp;.]*(?: [A-Z][</span><span class="sc">\\</span><span class="st">w&amp;.]*)*, a Delaware corporation"</span>  <span class="co"># a name followed by its incorporation</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>named</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>named <span class="ot">&lt;-</span> text <span class="sc">|&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(DocID <span class="sc">%in%</span> no_party<span class="sc">$</span>DocID) <span class="sc">|&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">transmute</span>(</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    DocID,                                             <span class="co"># the document without an organisation mention</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">NamedCompany =</span> stringi<span class="sc">::</span><span class="fu">stri_extract_first_regex</span>(  <span class="co"># the company the text names</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>      TextRaw,                                                    <span class="co"># the published text</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">"[A-Z][</span><span class="sc">\\</span><span class="st">w&amp;.]*(?: [A-Z][</span><span class="sc">\\</span><span class="st">w&amp;.]*)*, a Delaware corporation"</span>  <span class="co"># a name followed by its incorporation</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>named</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -1237,27 +1265,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>2 of these 3 documents name a company in their text all the same.</p>
 <p>Counting characters matters. Curly quotes, section signs and bullets take more than one byte each, and a tool that slices bytes cuts the wrong text for every span after the first of them:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>first_wide <span class="ot">&lt;-</span> text <span class="sc">|&gt;</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">transmute</span>(</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    DocID,                                         <span class="co"># the document</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">FirstWide =</span> stringi<span class="sc">::</span><span class="fu">stri_locate_first_regex</span>(  <span class="co"># where byte and character positions first part</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>      TextRaw,                                     <span class="co"># the published text</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">"[^</span><span class="sc">\\</span><span class="st">u0000-</span><span class="sc">\\</span><span class="st">u007f]"</span>                         <span class="co"># the first character outside ASCII</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    )[, <span class="st">"start"</span>]</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>dates <span class="sc">|&gt;</span></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">left_join</span>(</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    first_wide,   <span class="co"># each document's first character outside ASCII</span></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"DocID"</span>  <span class="co"># one position per document</span></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">Spans =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),        <span class="co"># date spans in the sample</span></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">AfterWideCharacter =</span> <span class="fu">sum</span>(  <span class="co"># spans a tool that slices bytes would cut wrongly</span></span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>      DateStart <span class="sc">&gt;=</span> FirstWide,  <span class="co"># the span starts after a character of more than one byte</span></span>
-<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">na.rm =</span> <span class="cn">TRUE</span>             <span class="co"># a document without such a character shifts nothing</span></span>
-<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>first_wide <span class="ot">&lt;-</span> text <span class="sc">|&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">transmute</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    DocID,                                         <span class="co"># the document</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">FirstWide =</span> stringi<span class="sc">::</span><span class="fu">stri_locate_first_regex</span>(  <span class="co"># where byte and character positions first part</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>      TextRaw,                                     <span class="co"># the published text</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">"[^</span><span class="sc">\\</span><span class="st">u0000-</span><span class="sc">\\</span><span class="st">u007f]"</span>                         <span class="co"># the first character outside ASCII</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    )[, <span class="st">"start"</span>]</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>dates <span class="sc">|&gt;</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">left_join</span>(</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    first_wide,   <span class="co"># each document's first character outside ASCII</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"DocID"</span>  <span class="co"># one position per document</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">Spans =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),        <span class="co"># date spans in the sample</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">AfterWideCharacter =</span> <span class="fu">sum</span>(  <span class="co"># spans a tool that slices bytes would cut wrongly</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>      DateStart <span class="sc">&gt;=</span> FirstWide,  <span class="co"># the span starts after a character of more than one byte</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">na.rm =</span> <span class="cn">TRUE</span>             <span class="co"># a document without such a character shifts nothing</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -1279,24 +1310,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>180 of the 214 documents in the sample contain such a character.</p>
 <p>In Python the slice is the same once the text is a <code>str</code>. <code>PlaceStart</code> and <code>LawStart</code> are stored as doubles, and pandas reads the offsets of <code>org_mentions</code> as floats because its rows without a span have none; dropping those rows and casting with <code>int()</code> makes the block work on every span file:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>text <span class="op">=</span> pd.read_parquet(<span class="st">"sample/text/exhibit10/exhibit10_sample.parquet"</span>).set_index(<span class="st">"DocID"</span>)[<span class="st">"TextRaw"</span>]</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>dates <span class="op">=</span> pd.read_parquet(<span class="st">"sample/spans/date_spans.parquet"</span>).dropna(subset<span class="op">=</span>[<span class="st">"DateStart"</span>])</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>dates[<span class="st">"Sliced"</span>] <span class="op">=</span> [</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    text[doc][<span class="bu">int</span>(start):<span class="bu">int</span>(stop)]  <span class="co"># 0-based and half-open: Python's own slice</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> doc, start, stop <span class="kw">in</span> <span class="bu">zip</span>(</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>        dates[<span class="st">"DocID"</span>],       <span class="co"># the document</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>        dates[<span class="st">"DateStart"</span>],   <span class="co"># 0-based start</span></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>        dates[<span class="st">"DateStop"</span>],    <span class="co"># half-open stop</span></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>text <span class="op">=</span> pd.read_parquet(<span class="st">"sample/text/exhibit10/exhibit10_sample.parquet"</span>).set_index(<span class="st">"DocID"</span>)[<span class="st">"TextRaw"</span>]</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>dates <span class="op">=</span> pd.read_parquet(<span class="st">"sample/spans/date_spans.parquet"</span>).dropna(subset<span class="op">=</span>[<span class="st">"DateStart"</span>])</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>dates[<span class="st">"Sliced"</span>] <span class="op">=</span> [</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    text[doc][<span class="bu">int</span>(start):<span class="bu">int</span>(stop)]  <span class="co"># 0-based and half-open: Python's own slice</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> doc, start, stop <span class="kw">in</span> <span class="bu">zip</span>(</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>        dates[<span class="st">"DocID"</span>],       <span class="co"># the document</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>        dates[<span class="st">"DateStart"</span>],   <span class="co"># 0-based start</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>        dates[<span class="st">"DateStop"</span>],    <span class="co"># half-open stop</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 </section>
 <section id="known-issues" class="level2">
 <h2 class="anchored" data-anchor-id="known-issues">Known issues</h2>
-<p>The package’s README describes these issues of v1.0.0; the figures come from the sample.</p>
+<p>The package’s README lists these issues of v1.0.0; the figures below come from the sample.</p>
 <ul>
 <li><strong>Columbia.</strong> The gazetteer reads “Columbia” as the country Colombia, so Colombia is heavily over-counted in <code>Places</code>, <code>places_geo</code> and the country counts of <code>Contracts</code>; in US contracts the word is almost always the District of Columbia, British Columbia or a US city. In the sample, 25 rows of <code>places_geo</code> read “Columbia” as Colombia.</li>
 <li><strong>Country spellings.</strong> A country can appear under several names, some in other languages; count on <code>GeoCountryIso</code>. In the Places table of the sample, <code>USA</code> appears as “United States”, “United States Of America”, “Usa”.</li>
@@ -1318,6 +1349,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="licences" class="level2">
 <h2 class="anchored" data-anchor-id="licences">Licences</h2>
 <p>The tables, the span files and the other data of the package are published under CC BY 4.0. The fine-tuned classifiers are published under CC BY-SA 4.0, the licence of the model they were trained from. The documents in <a href="#part-text">the documents part</a> are filings the SEC made public on EDGAR. The extraction image contains LexNLP, which is licensed under the AGPL-3.0, and carries a notice (<code>lexnlp/NOTICE.md</code>). The full texts of the licences are in the <code>LICENSES</code> folder of the <a href="https://github.com/MatthiasUckert/matcon-data-and-methods">site’s repository</a>.</p>
+</section>
+<section id="checking-a-download" class="level2">
+<h2 class="anchored" data-anchor-id="checking-a-download">Checking a download</h2>
+<p><code>MANIFEST.sha256</code> at the root of the package lists every file with its SHA-256 checksum. Google Drive may deliver a large folder as several zip files; unpack them into one folder, with <code>MANIFEST.sha256</code> at its root, before checking. From that folder (macOS, Linux), the first line checks the whole package and the second only the parts its pattern names, here <code>core</code> and <code>spans</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">shasum</span> <span class="at">-a</span> 256 <span class="at">-c</span> MANIFEST.sha256</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="at">-E</span> <span class="st">'  (core|spans)/'</span> MANIFEST.sha256 <span class="kw">|</span> <span class="ex">shasum</span> <span class="at">-a</span> 256 <span class="at">-c</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

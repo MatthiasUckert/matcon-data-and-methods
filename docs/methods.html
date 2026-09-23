@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="How the contracts were classified and their entities extracted, and how to turn the published spans into variables of your own. Each method comes with a worked example on the sample.">
+<meta name="description" content="How the contracts were classified and their entities extracted, how to apply the published classifiers and the extraction image, and how to turn the published spans into variables. Each method comes with an example on the sample.">
 
 <title>The methods – Material contracts: data and methods</title>
 <style>
@@ -167,7 +167,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#classification" id="toc-classification" class="nav-link active" data-scroll-target="#classification">Classification</a>
   <ul class="collapse">
   <li><a href="#classification-example" id="toc-classification-example" class="nav-link" data-scroll-target="#classification-example">Worked example</a></li>
-  <li><a href="#applying-a-model-to-your-own-documents" id="toc-applying-a-model-to-your-own-documents" class="nav-link" data-scroll-target="#applying-a-model-to-your-own-documents">Applying a model to your own documents</a></li>
+  <li><a href="#applying-a-classifier" id="toc-applying-a-classifier" class="nav-link" data-scroll-target="#applying-a-classifier">Applying a classifier</a></li>
   </ul></li>
   <li><a href="#keywords" id="toc-keywords" class="nav-link" data-scroll-target="#keywords">The keyword classifier</a>
   <ul class="collapse">
@@ -176,6 +176,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#extraction" id="toc-extraction" class="nav-link" data-scroll-target="#extraction">Extraction</a>
   <ul class="collapse">
   <li><a href="#the-span-files-of-the-sample" id="toc-the-span-files-of-the-sample" class="nav-link" data-scroll-target="#the-span-files-of-the-sample">The span files of the sample</a></li>
+  <li><a href="#running-the-extraction-image" id="toc-running-the-extraction-image" class="nav-link" data-scroll-target="#running-the-extraction-image">Running the extraction image</a></li>
   </ul></li>
   <li><a href="#spans-to-variables" id="toc-spans-to-variables" class="nav-link" data-scroll-target="#spans-to-variables">From spans to variables</a></li>
   </ul>
@@ -191,7 +192,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div>
   <div class="description">
-    How the contracts were classified and their entities extracted, and how to turn the published spans into variables of your own. Each method comes with a worked example on the sample.
+    How the contracts were classified and their entities extracted, how to apply the published classifiers and the extraction image, and how to turn the published spans into variables. Each method comes with an example on the sample.
   </div>
 </div>
 
@@ -208,7 +209,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Every example on this page reads the sample in <code>sample/</code>: 214 rows of the contracts table. Of these, 180 are labelled contracts, 15 from each of the 12 detailed categories; 3 are attachments the text screen rejected; and 31 are the registrant copies of 3 attachments whose filing names more than one registrant. The sample shows how the files work, not what the corpus looks like.</p>
+<p>Every example on this page reads the sample in the <a href="https://github.com/MatthiasUckert/matcon-data-and-methods/tree/main/sample"><code>sample/</code> folder</a> of the site’s repository: 214 rows of the contracts table. Of these, 180 are labelled contracts, 15 from each of the 12 detailed categories; 3 are attachments the text screen rejected; and 31 are the registrant copies of 3 attachments whose filing names more than one registrant. The sample illustrates the file structure; it is not representative of the corpus.</p>
 <section id="classification" class="level2">
 <h2 class="anchored" data-anchor-id="classification">Classification</h2>
 <p>Each contract carries three labels, each from a fine-tuned Legal-BERT model (<code>nlpaueb/legal-bert-base-uncased</code>) of its own: a detailed category out of 12, a broad category out of 7, and whether the document is an original contract or an amendment. A model reads the first 256 or the first 512 tokens of a document and ignores the rest. Each task was trained at both lengths, which makes the 6 models of <a href="./data.html#part-models">the classifiers part</a>.</p>
@@ -216,6 +217,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Cross-validation over five folds of the labelled contracts selected a configuration for each task; for the broad task it selected the 512-token model. The published labels come from the 256-token models in all three tasks.</p>
 <p>The detailed categories and the broad category each rolls up to, as the contracts table publishes them:</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/core/Contracts.parquet"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
@@ -227,6 +230,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    ClassRollup,  <span class="co"># parents in alphabetical order</span></span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    Class         <span class="co"># and their children below them</span></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -292,16 +296,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <section id="classification-example" class="level3">
 <h3 class="anchored" data-anchor-id="classification-example">Worked example</h3>
-<p>The published labels sit in the contracts table; the reference labels of the labelled contracts sit in the labelled sample. The annotators gave them with <a href="https://github.com/MatthiasUckert/rLabelDocs">rLabelDocs</a>, a Shiny application for labelling documents, and <code>LabelRound</code> records the labelling round, <code>Round1</code> or <code>Round2</code> (Online Appendix C of the paper).</p>
+<p>The published labels sit in the contracts table; the reference labels of the labelled contracts sit in the labelled sample. The labels were given with <a href="https://github.com/MatthiasUckert/rLabelDocs">rLabelDocs</a>, a Shiny application for labelling documents, and <code>LabelRound</code> records the labelling round, <code>Round1</code> or <code>Round2</code> (Online Appendix C of the paper).</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>labels <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/core/Labels.parquet"</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>labelled <span class="ot">&lt;-</span> contracts <span class="sc">|&gt;</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(DocID <span class="sc">%in%</span> labels<span class="sc">$</span>DocID)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 </div>
 <p>The published detailed categories of the labelled contracts. The reference labels put 15 of them in each category, so a count away from 15 is a document the detailed model placed elsewhere:</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>labelled <span class="sc">|&gt;</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(Class)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -367,11 +377,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The roll-up the paper uses is published beside the detailed label, as <code>ClassRollup</code>; it does not have to be rebuilt from a map. Against the broad model’s own label, on every row of the sample:</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    ClassRollup,  <span class="co"># the broad category as the paper uses it, rolled up from Class</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    ClassBroad    <span class="co"># the label of the model trained on the broad labels</span></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -435,11 +448,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The two agree except on 4 of the 214 rows, which are the rows where <code>HierConsistent</code> is <code>FALSE</code>:</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    HierConsistent,                    <span class="co"># FALSE where the broad model departs from the roll-up</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Agree =</span> ClassRollup <span class="sc">==</span> ClassBroad  <span class="co"># the comparison the flag stands for</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -468,6 +484,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The published labels against the reference labels, task by task and by labelling round:</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>compared <span class="ot">&lt;-</span> labels <span class="sc">|&gt;</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    DocID,                          <span class="co"># the document</span></span>
@@ -490,6 +508,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">Amendment =</span> <span class="fu">sum</span>(AmendType <span class="sc">==</span> LabelAmend),   <span class="co"># agreement on original against amendment</span></span>
 <span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">.by =</span> LabelRound                            <span class="co"># Round1 or Round2</span></span>
 <span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -527,6 +546,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The labelled contracts on which <code>Class</code> or <code>ClassRollup</code> departs from the reference label:</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>compared <span class="sc">|&gt;</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(Class <span class="sc">!=</span> LabelDetailed <span class="sc">|</span> ClassRollup <span class="sc">!=</span> LabelBroad) <span class="sc">|&gt;</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
@@ -539,6 +560,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    ClassBroad,             <span class="co"># what the separate broad model chose</span></span>
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    HierConsistent          <span class="co"># FALSE where that model departs from the roll-up</span></span>
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -583,27 +605,134 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Read this agreement as a check that the files fit together, not as accuracy. The labelled sample is the training data of the published models: every document above was among those they were fitted on. Accuracy on documents a model has not seen comes from the cross-validation over the folds, not from this comparison.</p>
 <p>On the 4 labelled contracts where <code>HierConsistent</code> is <code>FALSE</code>, the detailed model agrees with the reference label in 4.</p>
 </section>
-<section id="applying-a-model-to-your-own-documents" class="level3">
-<h3 class="anchored" data-anchor-id="applying-a-model-to-your-own-documents">Applying a model to your own documents</h3>
-<p><a href="./data.html#part-models">The classifiers part</a> holds the 6 models as zip archives, one per task and context length. Beside them, <code>models_index.csv</code> maps each archive to the folder it unpacks to; its <code>LabelledPublished</code> marks the models whose output is published, and <code>Selected</code> and <code>MacroF1</code> the configuration cross-validation chose for each task. <code>deployed.parquet</code> is the record of that selection; it lists the broad model at 512 tokens. <code>README.md</code> in the same folder is the usage guide: it holds the code that applies a model and three rules for reproducing a published column. The input is <code>TextRaw</code> from <a href="./data.html#part-text">the documents part</a>, the context length is the one in the archive’s name, and the label mapping comes from the model.</p>
+<section id="applying-a-classifier" class="level3">
+<h3 class="anchored" data-anchor-id="applying-a-classifier">Applying a classifier</h3>
+<p><a href="./data.html#part-models">The classifiers part</a> holds the 6 models as zip archives, one per task and context length. All start from Legal-BERT and were trained on the 4,398 labelled contracts in <code>core/Labels.parquet</code>.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Archive</th>
+<th style="text-align: left;">Task</th>
+<th style="text-align: right;">Categories</th>
+<th style="text-align: right;">Context</th>
+<th style="text-align: left;">Labelled the published data</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>ClassDetailed_L256.zip</code></td>
+<td style="text-align: left;">Contract type (<code>Class</code>)</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">256 tokens</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>ClassDetailed_L512.zip</code></td>
+<td style="text-align: left;">Contract type</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">512 tokens</td>
+<td style="text-align: left;">no</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>ClassBroad_L256.zip</code></td>
+<td style="text-align: left;">Broad type from a separate model (<code>ClassBroad</code>)</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">256 tokens</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>ClassBroad_L512.zip</code></td>
+<td style="text-align: left;">Broad type from a separate model</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">512 tokens</td>
+<td style="text-align: left;">no</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>AmendType_L256.zip</code></td>
+<td style="text-align: left;">Original or amendment (<code>AmendType</code>)</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">256 tokens</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>AmendType_L512.zip</code></td>
+<td style="text-align: left;">Original or amendment</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">512 tokens</td>
+<td style="text-align: left;">no</td>
+</tr>
+</tbody>
+</table>
+<p>Beside the archives, <code>models_index.csv</code> maps each archive to the folder it unpacks to, and <code>deployed.parquet</code> records the configuration cross-validation selected for each task, with its macro-F1. <code>README.md</code> in the same folder is the usage guide; this section repeats it.</p>
+<p><strong>What an archive holds.</strong> Each archive unpacks to one folder named after the training run; the name spells out the context length (<code>L</code>), epochs (<code>E</code>), batch size (<code>B</code>), learning rate (<code>LR</code>), class weights (<code>W1</code> on, <code>W0</code> off) and seed (<code>S</code>). Inside it:</p>
+<pre><code>&lt;Task&gt;__nlpaueb-legal-bert-base-uncased__TText_L&lt;len&gt;_E&lt;epochs&gt;_B32_LR&lt;rate&gt;_W&lt;weights&gt;_S42__FINAL/
+  model/            the model: config.json with the label mapping (id2label), the weights
+                    (model.safetensors) and the tokenizer (tokenizer.json, vocab.txt, ...)
+  config.json       the training run: data, labels, hyperparameters, software versions
+  train_log.parquet the training loss per epoch
+  run.log           the run's log</code></pre>
+<p><strong>Running a model.</strong> The models were trained with Python 3.12, PyTorch 2.10 and transformers 4.49; recent versions of both libraries load them. A GPU helps but is not needed.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install torch transformers pandas pyarrow</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">unzip</span> ClassDetailed_L256.zip</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> transformers <span class="im">import</span> AutoModelForSequenceClassification, AutoTokenizer</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>model_dir <span class="op">=</span> <span class="st">"ClassDetailed__nlpaueb-legal-bert-base-uncased__TText_L256_E6_B32_LR2e-05_W1_S42__FINAL/model"</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>max_len <span class="op">=</span> <span class="dv">256</span>                      <span class="co"># the context length the model was trained with: L256 or L512</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>tok <span class="op">=</span> AutoTokenizer.from_pretrained(model_dir)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> AutoModelForSequenceClassification.from_pretrained(model_dir).<span class="bu">eval</span>()</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>id2label <span class="op">=</span> {<span class="bu">int</span>(k): v <span class="cf">for</span> k, v <span class="kw">in</span> model.config.id2label.items()}</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> pd.read_parquet(<span class="st">"text/exhibit10/exhibit10_2012.parquet"</span>, columns<span class="op">=</span>[<span class="st">"DocID"</span>, <span class="st">"TextRaw"</span>]).head(<span class="dv">32</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>enc <span class="op">=</span> tok(docs[<span class="st">"TextRaw"</span>].fillna(<span class="st">""</span>).tolist(), truncation<span class="op">=</span><span class="va">True</span>, max_length<span class="op">=</span>max_len,</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>          padding<span class="op">=</span><span class="st">"max_length"</span>, return_tensors<span class="op">=</span><span class="st">"pt"</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> torch.inference_mode():</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    probs <span class="op">=</span> torch.softmax(model(<span class="op">**</span>enc).logits, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>top <span class="op">=</span> probs.topk(<span class="dv">2</span>, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>docs[<span class="st">"Label"</span>] <span class="op">=</span> [id2label[i] <span class="cf">for</span> i <span class="kw">in</span> top.indices[:, <span class="dv">0</span>].tolist()]</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>docs[<span class="st">"Prob"</span>] <span class="op">=</span> top.values[:, <span class="dv">0</span>].tolist()</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>docs[<span class="st">"Label2"</span>] <span class="op">=</span> [id2label[i] <span class="cf">for</span> i <span class="kw">in</span> top.indices[:, <span class="dv">1</span>].tolist()]</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>docs[<span class="st">"Prob2"</span>] <span class="op">=</span> top.values[:, <span class="dv">1</span>].tolist()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Three rules the published labels follow.</strong> Your own use should follow them too:</p>
+<ul>
+<li>The input is <code>TextRaw</code> from <a href="./data.html#part-text">the documents part</a>, the document’s full text, unchanged.</li>
+<li>The model reads the first <code>max_len</code> tokens and ignores the rest (<code>truncation=True</code>). Use the length in the archive’s name; a 256-token model given 512 tokens is not the model that was scored.</li>
+<li>The label mapping travels with the model (<code>id2label</code> in <code>model/config.json</code>); never rebuild it from a list of category names.</li>
+</ul>
+<p><code>Label</code>, <code>Prob</code>, <code>Label2</code> and <code>Prob2</code> correspond to <code>BertClassDetailed</code>, <code>BertClassDetailedProb</code>, <code>BertClassDetailed2</code> and <code>BertClassDetailed2Prob</code> in the contracts table, and likewise for the other two tasks. The documents part holds exactly the text the models read, so a 256-token model run on it reproduces those columns, up to the last digits of a probability that differ between processors.</p>
+<p><strong>Rolling up.</strong> To roll a detailed label up to the broad category the paper uses (<code>ClassRollup</code>): take the part before the colon, with <code>Customer / Supplier</code> and <code>R&amp;D</code> rolling up to <code>Purchases and Sales</code>, and <code>Leases</code>, <code>Licenses</code> and <code>Other</code> standing alone. The taxonomy table above shows every pair.</p>
+<p>The models are derived from Legal-BERT, published under CC BY-SA 4.0, and are published under the same licence.</p>
 </section>
 </section>
 <section id="keywords" class="level2">
 <h2 class="anchored" data-anchor-id="keywords">The keyword classifier</h2>
-<p>Beside each transformer label the contracts table carries a label from a keyword classifier, which its codebook calls an independent second instrument. The core part publishes its lexicon as <code>KeywordTerms.parquet</code>: 160 rows, one per task, category and term, with <code>Task</code> naming the task (<code>ClassDetailed</code>, <code>ClassBroad</code> or <code>AmendType</code>). <code>Term</code> is the keyword, one to three lower-case words searched in the first 256 words of a document. <code>Precision</code> is the share of the labelled documents containing it that belong to its category, and <code>Power</code>, the term’s strength, is the lower bound of the Wilson interval of that precision. The codebook lists the other columns.</p>
+<p>Beside each transformer label the contracts table carries a label from a keyword classifier, an independent second instrument. The core part publishes its lexicon as <code>KeywordTerms.parquet</code>: 160 rows, one per task, category and term, with <code>Task</code> naming the task (<code>ClassDetailed</code>, <code>ClassBroad</code> or <code>AmendType</code>). <code>Term</code> is the keyword, one to three lower-case words searched in the first 256 words of a document. <code>Precision</code> is the share of the labelled documents containing it that belong to its category, and <code>Power</code>, the term’s strength, is the lower bound of the Wilson interval of that precision. The codebook lists the other columns.</p>
 <p>The package publishes the terms and the labels they gave; the code that finds a term in a text is in the pipeline (see <a href="./reproduce.html">the Code page</a>). In the contracts table the keyword label of the detailed task is <code>KwClassDetailed</code>, with the keyword that decided it in <code>KwClassDetailedTerm</code> and its <code>Power</code> in <code>KwClassDetailedPower</code>; the label is missing where no keyword applied or two categories tied. The broad task has the same three columns. <code>ClassDetailedFlag</code> and <code>ClassBroadFlag</code> say whether the keyword label confirmed the transformer, contradicted it, or left it unchecked by giving no category. For the amendment task <code>KwAmendType</code> is <code>Amended</code> where an amendment term applies and <code>Original</code> otherwise. The lexicon also lists 12 terms for <code>Original</code>, which that rule does not use.</p>
 <section id="keyword-example" class="level3">
 <h3 class="anchored" data-anchor-id="keyword-example">Worked example</h3>
 <p>Every row the keyword classifier labelled in the detailed or broad task records the term that decided the label. The terms behind one category:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(KwClassDetailed <span class="sc">==</span> <span class="st">"Leases"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    KwClassDetailedTerm,   <span class="co"># the term that decided the label</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    KwClassDetailedPower,  <span class="co"># its Power in the lexicon</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Rows"</span>          <span class="co"># how many rows of the sample it labelled</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(dplyr<span class="sc">::</span><span class="fu">desc</span>(KwClassDetailedPower))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(KwClassDetailed <span class="sc">==</span> <span class="st">"Leases"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    KwClassDetailedTerm,   <span class="co"># the term that decided the label</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    KwClassDetailedPower,  <span class="co"># its Power in the lexicon</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Rows"</span>          <span class="co"># how many rows of the sample it labelled</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(dplyr<span class="sc">::</span><span class="fu">desc</span>(KwClassDetailedPower))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -642,22 +771,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The lexicon itself is in the sample, so the same terms can be read with their <code>Power</code> and <code>Precision</code>. The strongest terms of that category, by rank:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>keyword_terms <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/core/KeywordTerms.parquet"</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>keyword_terms <span class="sc">|&gt;</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    Task <span class="sc">==</span> <span class="st">"ClassDetailed"</span>,  <span class="co"># the detailed task</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    Class <span class="sc">==</span> <span class="st">"Leases"</span>         <span class="co"># the category the terms above decided</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(Rank) <span class="sc">|&gt;</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    Rank,       <span class="co"># position within the category, by Power</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    Term,       <span class="co"># the keyword itself</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    Power,      <span class="co"># the lower bound of the Wilson interval of its precision</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    Precision,  <span class="co"># the share of its labelled documents that are Leases</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    HitsTot     <span class="co"># labelled documents containing it</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  utils<span class="sc">::</span><span class="fu">head</span>(<span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>keyword_terms <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/core/KeywordTerms.parquet"</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>keyword_terms <span class="sc">|&gt;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    Task <span class="sc">==</span> <span class="st">"ClassDetailed"</span>,  <span class="co"># the detailed task</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    Class <span class="sc">==</span> <span class="st">"Leases"</span>         <span class="co"># the category the terms above decided</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(Rank) <span class="sc">|&gt;</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    Rank,       <span class="co"># position within the category, by Power</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    Term,       <span class="co"># the keyword itself</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    Power,      <span class="co"># the lower bound of the Wilson interval of its precision</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    Precision,  <span class="co"># the share of its labelled documents that are Leases</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    HitsTot     <span class="co"># labelled documents containing it</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  utils<span class="sc">::</span><span class="fu">head</span>(<span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -713,11 +845,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The same file holds the other two tasks under their own <code>Task</code> value:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>keyword_terms <span class="sc">|&gt;</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    Task,            <span class="co"># the three tasks share one file</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Terms"</span>   <span class="co"># terms published for each</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>keyword_terms <span class="sc">|&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    Task,            <span class="co"># the three tasks share one file</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Terms"</span>   <span class="co"># terms published for each</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -747,8 +882,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>How often the keyword classifier gives a label at all, and whether it agrees with the transformer when it does:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(ClassDetailedFlag)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>contracts <span class="sc">|&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(ClassDetailedFlag)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -778,12 +916,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p><code>contradicted</code> is a disagreement between two instruments, not yet an error of either. On the labelled contracts the reference labels say which one was right, bearing in mind that both instruments were built from these documents:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>compared <span class="sc">|&gt;</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(ClassDetailedFlag <span class="sc">==</span> <span class="st">"contradicted"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">TransformerRight =</span> Class <span class="sc">==</span> LabelDetailed,        <span class="co"># the transformer's label matches the reference label</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">LexiconRight =</span> KwClassDetailed <span class="sc">==</span> LabelDetailed   <span class="co"># the lexicon's label matches the reference label</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>compared <span class="sc">|&gt;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(ClassDetailedFlag <span class="sc">==</span> <span class="st">"contradicted"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">TransformerRight =</span> Class <span class="sc">==</span> LabelDetailed,        <span class="co"># the transformer's label matches the reference label</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">LexiconRight =</span> KwClassDetailed <span class="sc">==</span> LabelDetailed   <span class="co"># the lexicon's label matches the reference label</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -809,7 +950,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="extraction" class="level2">
 <h2 class="anchored" data-anchor-id="extraction">Extraction</h2>
-<p>The organisation candidates come from LexNLP 2.3.0, run inside the container image of <a href="./data.html#part-lexnlp">the extraction image part</a>; places, dates, law clauses and redaction markers come from the pipeline’s own extractors. Rules written in R, part of the pipeline, decide which candidates become spans: they match organisations to the registrant and give each party a role, attach places to parties, read the jurisdiction a law clause names, and place each date relative to the filing date. <code>lexnlp/README.md</code> in the extraction image part says how to load and run the image. It is built for <code>linux/arm64</code>; on an Intel or AMD machine Docker runs it under emulation.</p>
+<p>The organisation candidates come from LexNLP 2.3.0, run inside the container image of <a href="./data.html#part-lexnlp">the extraction image part</a>; places, dates, law clauses and redaction markers come from the pipeline’s own extractors. Rules written in R, part of the pipeline, decide which candidates become spans: they match organisations to the registrant and give each party a role, attach places to parties, read the jurisdiction a law clause names, and place each date relative to the filing date. <a href="#running-the-extraction-image">Running the extraction image</a> says how to apply the image to documents of your own.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 50%">
@@ -853,46 +994,52 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="the-span-files-of-the-sample">The span files of the sample</h3>
 <p>Each span file holds one row per entity found, keyed on the document and located by its offsets into the text (see <a href="./data.html#span-offsets-are-0-based-and-half-open">the data page</a>). Counted per document:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>span_files <span class="ot">&lt;-</span> <span class="fu">list.files</span>(</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"sample/spans"</span>,           <span class="co"># every span file of the sample</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">pattern =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">.parquet$"</span>,  <span class="co"># the codebook beside them is not a span file</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">full.names =</span> <span class="cn">TRUE</span>         <span class="co"># read_parquet needs the path, not the name</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(span_files) <span class="ot">&lt;-</span> <span class="fu">sub</span>(</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"</span><span class="sc">\\</span><span class="st">.parquet$"</span>,        <span class="co"># the file extension</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">""</span>,                   <span class="co"># dropped, so the name is the kind of span</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">basename</span>(span_files)  <span class="co"># the file names without their folder</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>spans <span class="ot">&lt;-</span> <span class="fu">lapply</span>(</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  span_files,          <span class="co"># one path per kind of span</span></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  arrow<span class="sc">::</span>read_parquet  <span class="co"># each file read whole: the sample is small</span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>span_files <span class="ot">&lt;-</span> <span class="fu">list.files</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"sample/spans"</span>,           <span class="co"># every span file of the sample</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">pattern =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">.parquet$"</span>,  <span class="co"># the codebook beside them is not a span file</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">full.names =</span> <span class="cn">TRUE</span>         <span class="co"># read_parquet needs the path, not the name</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(span_files) <span class="ot">&lt;-</span> <span class="fu">sub</span>(</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"</span><span class="sc">\\</span><span class="st">.parquet$"</span>,        <span class="co"># the file extension</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">""</span>,                   <span class="co"># dropped, so the name is the kind of span</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">basename</span>(span_files)  <span class="co"># the file names without their folder</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>spans <span class="ot">&lt;-</span> <span class="fu">lapply</span>(</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  span_files,          <span class="co"># one path per kind of span</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  arrow<span class="sc">::</span>read_parquet  <span class="co"># each file read whole: the sample is small</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>per_document <span class="ot">&lt;-</span> <span class="cf">function</span>(kind) {</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  start <span class="ot">&lt;-</span> <span class="fu">grep</span>(</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Start$"</span>,              <span class="co"># the first ...Start column is the span's own start</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">names</span>(spans[[kind]]),  <span class="co"># the columns of this span file</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">value =</span> <span class="cn">TRUE</span>           <span class="co"># the name rather than its position</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  )[<span class="dv">1</span>]</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  spans[[kind]] <span class="sc">|&gt;</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(.data[[start]])) <span class="sc">|&gt;</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>      DocID,         <span class="co"># one count per document</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">name =</span> <span class="st">"Rows"</span>  <span class="co"># the rows of this kind in the document</span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">Kind =</span> kind,                   <span class="co"># the span file</span></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">Documents =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),        <span class="co"># documents with at least one span</span></span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">Spans =</span> <span class="fu">sum</span>(Rows),             <span class="co"># spans in all</span></span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">Median =</span> stats<span class="sc">::</span><span class="fu">median</span>(Rows),  <span class="co"># spans in the typical document</span></span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">Max =</span> <span class="fu">max</span>(Rows)                <span class="co"># spans in the busiest document</span></span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(spans) <span class="sc">|&gt;</span></span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(per_document) <span class="sc">|&gt;</span></span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">bind_rows</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>per_document <span class="ot">&lt;-</span> <span class="cf">function</span>(kind) {</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  start <span class="ot">&lt;-</span> <span class="fu">grep</span>(</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Start$"</span>,              <span class="co"># the first ...Start column is the span's own start</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">names</span>(spans[[kind]]),  <span class="co"># the columns of this span file</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">value =</span> <span class="cn">TRUE</span>           <span class="co"># the name rather than its position</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  )[<span class="dv">1</span>]</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  spans[[kind]] <span class="sc">|&gt;</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(.data[[start]])) <span class="sc">|&gt;</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>      DocID,         <span class="co"># one count per document</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">name =</span> <span class="st">"Rows"</span>  <span class="co"># the rows of this kind in the document</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">Kind =</span> kind,                   <span class="co"># the span file</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">Documents =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),        <span class="co"># documents with at least one span</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">Spans =</span> <span class="fu">sum</span>(Rows),             <span class="co"># spans in all</span></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">Median =</span> stats<span class="sc">::</span><span class="fu">median</span>(Rows),  <span class="co"># spans in the typical document</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">Max =</span> <span class="fu">max</span>(Rows)                <span class="co"># spans in the busiest document</span></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(spans) <span class="sc">|&gt;</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(per_document) <span class="sc">|&gt;</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">bind_rows</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -955,34 +1102,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The spans of one contract, kind by kind: the shortest contract of the sample that appears in all 6 span files.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>text <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/text/exhibit10/exhibit10_sample.parquet"</span>)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>with_all_kinds <span class="ot">&lt;-</span> <span class="fu">Reduce</span>(</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  intersect,  <span class="co"># documents present in every span file</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(     <span class="co"># one vector of document keys per span file</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    spans,               <span class="co"># every span file</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">function</span>(x) x<span class="sc">$</span>DocID  <span class="co"># the documents it holds</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>example_doc <span class="ot">&lt;-</span> text <span class="sc">|&gt;</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(DocID <span class="sc">%in%</span> with_all_kinds) <span class="sc">|&gt;</span></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">slice_min</span>(stringi<span class="sc">::</span><span class="fu">stri_length</span>(TextRaw)) <span class="sc">|&gt;</span></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">pull</span>(DocID)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>text <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/text/exhibit10/exhibit10_sample.parquet"</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>with_all_kinds <span class="ot">&lt;-</span> <span class="fu">Reduce</span>(</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  intersect,  <span class="co"># documents present in every span file</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(     <span class="co"># one vector of document keys per span file</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    spans,               <span class="co"># every span file</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">function</span>(x) x<span class="sc">$</span>DocID  <span class="co"># the documents it holds</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>example_doc <span class="ot">&lt;-</span> text <span class="sc">|&gt;</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(DocID <span class="sc">%in%</span> with_all_kinds) <span class="sc">|&gt;</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">slice_min</span>(stringi<span class="sc">::</span><span class="fu">stri_length</span>(TextRaw)) <span class="sc">|&gt;</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">pull</span>(DocID)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 </div>
 <p>It was filed by NATIONAL ATLANTIC HOLDINGS CORP on 2006-03-27 and described by the filer as EX-10.1; its <code>DocID</code> is 0000946492-2c96b6e7d9035673af968fee97955783. The spans of one kind, in the order they appear in the text:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>spans_of <span class="ot">&lt;-</span> <span class="cf">function</span>(kind) {</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  start <span class="ot">&lt;-</span> <span class="fu">grep</span>(</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Start$"</span>,              <span class="co"># the first ...Start column is the span's own start</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">names</span>(spans[[kind]]),  <span class="co"># the columns of this span file</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">value =</span> <span class="cn">TRUE</span>           <span class="co"># the name rather than its position</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  )[<span class="dv">1</span>]</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  spans[[kind]] <span class="sc">|&gt;</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(DocID <span class="sc">==</span> example_doc) <span class="sc">|&gt;</span></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">arrange</span>(.data[[start]]) <span class="sc">|&gt;</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>DocID)</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="fu">spans_of</span>(<span class="st">"term_spans"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>spans_of <span class="ot">&lt;-</span> <span class="cf">function</span>(kind) {</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  start <span class="ot">&lt;-</span> <span class="fu">grep</span>(</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Start$"</span>,              <span class="co"># the first ...Start column is the span's own start</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">names</span>(spans[[kind]]),  <span class="co"># the columns of this span file</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">value =</span> <span class="cn">TRUE</span>           <span class="co"># the name rather than its position</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  )[<span class="dv">1</span>]</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  spans[[kind]] <span class="sc">|&gt;</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(DocID <span class="sc">==</span> example_doc) <span class="sc">|&gt;</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">arrange</span>(.data[[start]]) <span class="sc">|&gt;</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>DocID)</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="fu">spans_of</span>(<span class="st">"term_spans"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -1426,24 +1579,94 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
+<section id="running-the-extraction-image" class="level3">
+<h3 class="anchored" data-anchor-id="running-the-extraction-image">Running the extraction image</h3>
+<p><code>contracts-lexnlp-17a366b025fe.tar.gz</code> in <a href="./data.html#part-lexnlp">the extraction image part</a> is the Docker image that extracted the organisation candidates of the database: LexNLP 2.3.0 in Python 3.8, with the NLTK data it needs baked in, so it runs offline. The rules that turn candidates into the published parties are part of the pipeline, not of the image. <code>README.md</code> beside the image is the usage guide; this section repeats it.</p>
+<p><strong>Loading it.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> load <span class="at">-i</span> contracts-lexnlp-17a366b025fe.tar.gz     <span class="co"># restores the image as contracts-lexnlp:latest</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The image is built for 64-bit ARM (<code>linux/arm64</code>, native on Apple Silicon). On an Intel or AMD machine Docker runs it under emulation, which works but is several times slower. To run natively there, rebuild it from the <code>Dockerfile</code> in the pipeline repository (<a href="https://github.com/MatthiasUckert/material-contracts">material-contracts</a>, folder <code>contracts-lexnlp/</code>, at commit <code>e3f97216ef96d58d6001faf23bc2e5017eed5b7a</code>) and pin its packages to the <code>requirements.lock.txt</code> published beside the image; a rebuild is the same software, not the same image.</p>
+<p><strong>Running it.</strong> The image reads parquet files with a <code>DocID</code> and a <code>TextRaw</code> column, which is what <a href="./data.html#part-text">the documents part</a> holds, and writes one parquet file with one row per match:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-v</span> <span class="st">"</span><span class="va">$PWD</span><span class="st">"</span>:/work contracts-lexnlp:latest <span class="dt">\</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  exhibit10_2012.parquet <span class="dt">\</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> lexnlp_org_2012.parquet <span class="dt">\</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--label</span> ORG <span class="dt">\</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--n-process</span> 8</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Option</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">inputs</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">one or more parquet files or folders, relative to the mounted directory</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>--output</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">the parquet file to write</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>--label</code></td>
+<td style="text-align: left;"><code>ORG</code></td>
+<td style="text-align: left;">what to extract: <code>ORG</code>, <code>DATE</code>, <code>GPE</code>, <code>MONEY</code>, <code>AMOUNT</code>, <code>PERCENT</code>, <code>RATIO</code>, <code>DURATION</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>--id-col</code>, <code>--text-col</code></td>
+<td style="text-align: left;"><code>DocID</code>, <code>TextRaw</code></td>
+<td style="text-align: left;">the input columns</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>--timeout</code></td>
+<td style="text-align: left;">60</td>
+<td style="text-align: left;">seconds per extractor and document; past it, the document keeps its other rows</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>--max-chars</code></td>
+<td style="text-align: left;">0 (off)</td>
+<td style="text-align: left;">read only the first N characters of each document</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>--n-process</code></td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">worker processes; 0 or less uses all cores</td>
+</tr>
+</tbody>
+</table>
+<p>The output has <code>DocID</code>, <code>Start</code>, <code>Stop</code>, <code>Span</code>, <code>Label</code>, <code>LabelRaw</code>, <code>Engine</code> and <code>Model</code>, plus columns specific to each label (for <code>ORG</code>: <code>Name</code>, <code>NameAbbr</code>, <code>TypeFull</code>, <code>TypeAbbr</code>, <code>TypeLabel</code>, <code>Description</code>). Offsets follow the same rule as the published spans: <code>TextRaw[Start:Stop] == Span</code>. A document without any match appears once, with empty offsets, so every input document is accounted for.</p>
+<p>The database used the image for <code>ORG</code> only; its places, dates, law clauses and redaction markers come from the pipeline’s own extractors. The documents part holds exactly the text the image read. The wrapper that runs LexNLP is inside the image at <code>/app/extract_lexnlp.py</code> and in the pipeline repository in <code>contracts-lexnlp/</code> at the commit above.</p>
+<p>LexNLP is licensed under the GNU Affero General Public License v3.0 (see <code>lexnlp/NOTICE.md</code> in the part). The image contains it and is distributed under that licence.</p>
+</section>
 </section>
 <section id="spans-to-variables" class="level2">
 <h2 class="anchored" data-anchor-id="spans-to-variables">From spans to variables</h2>
 <p><code>TermYears</code> in the contracts table is the longest term the contract states, in years. A contract can state several periods, and <code>term_spans</code> keeps every one of them, with the period in years (<code>TermYears</code>), the phrasing that matched (<code>TermKind</code>) and whether the clause states the contract has no fixed length (<code>IsOpen</code>). The periods with a length:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>terms <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/spans/term_spans.parquet"</span>)</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>candidates <span class="ot">&lt;-</span> terms <span class="sc">|&gt;</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(TermYears),  <span class="co"># the phrase parsed into a length</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span>IsOpen             <span class="co"># an open-ended period has no length to compare</span></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>candidates <span class="sc">|&gt;</span></span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    TermKind,           <span class="co"># the phrase the period came from</span></span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Spans"</span>      <span class="co"># candidates of that kind in the sample</span></span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>terms <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_parquet</span>(<span class="st">"sample/spans/term_spans.parquet"</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>candidates <span class="ot">&lt;-</span> terms <span class="sc">|&gt;</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(TermYears),  <span class="co"># the phrase parsed into a length</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span>IsOpen             <span class="co"># an open-ended period has no length to compare</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>candidates <span class="sc">|&gt;</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    TermKind,           <span class="co"># the phrase the period came from</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Spans"</span>      <span class="co"># candidates of that kind in the sample</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -1481,33 +1704,36 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The published rule, recomputed from the spans: the longest of these periods in each contract, against the published column.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>per_contract <span class="ot">&lt;-</span> candidates <span class="sc">|&gt;</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">LongestStated =</span> <span class="fu">max</span>(TermYears),  <span class="co"># the published rule</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Candidates =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),         <span class="co"># periods to choose among</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">.by =</span> DocID                      <span class="co"># one value per contract</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">inner_join</span>(</span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(  <span class="co"># the published column beside the recomputed one</span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>      contracts,    <span class="co"># one row per contract</span></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>      DocID,        <span class="co"># the contract</span></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>      TermYears     <span class="co"># the published term in years</span></span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"DocID"</span>  <span class="co"># the span files are keyed on the same document</span></span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(TermYears))  <span class="co"># contracts for which a term was published</span></span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>term_check <span class="ot">&lt;-</span> per_contract <span class="sc">|&gt;</span></span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
-<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">Contracts =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),                   <span class="co"># contracts with a candidate period</span></span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">SeveralCandidates =</span> <span class="fu">sum</span>(Candidates <span class="sc">&gt;</span> <span class="dv">1</span>),  <span class="co"># contracts that state more than one period</span></span>
-<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">PublishedRuleMatches =</span> <span class="fu">sum</span>(dplyr<span class="sc">::</span><span class="fu">near</span>(   <span class="co"># contracts the recomputed rule reproduces</span></span>
-<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>      LongestStated,  <span class="co"># the published rule, recomputed</span></span>
-<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>      TermYears       <span class="co"># the published column</span></span>
-<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>    ))</span>
-<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>term_check</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>per_contract <span class="ot">&lt;-</span> candidates <span class="sc">|&gt;</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">LongestStated =</span> <span class="fu">max</span>(TermYears),  <span class="co"># the published rule</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Candidates =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),         <span class="co"># periods to choose among</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">.by =</span> DocID                      <span class="co"># one value per contract</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">inner_join</span>(</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(  <span class="co"># the published column beside the recomputed one</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>      contracts,    <span class="co"># one row per contract</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>      DocID,        <span class="co"># the contract</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>      TermYears     <span class="co"># the published term in years</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"DocID"</span>  <span class="co"># the span files are keyed on the same document</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(TermYears))  <span class="co"># contracts for which a term was published</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>term_check <span class="ot">&lt;-</span> per_contract <span class="sc">|&gt;</span></span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">Contracts =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),                   <span class="co"># contracts with a candidate period</span></span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">SeveralCandidates =</span> <span class="fu">sum</span>(Candidates <span class="sc">&gt;</span> <span class="dv">1</span>),  <span class="co"># contracts that state more than one period</span></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">PublishedRuleMatches =</span> <span class="fu">sum</span>(dplyr<span class="sc">::</span><span class="fu">near</span>(   <span class="co"># contracts the recomputed rule reproduces</span></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>      LongestStated,  <span class="co"># the published rule, recomputed</span></span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>      TermYears       <span class="co"># the published column</span></span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>    ))</span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>term_check</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
@@ -1531,18 +1757,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The recomputed rule gives the published value in 177 of the 177 contracts, and 126 of them state more than one period. What the chosen period governs:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>candidates <span class="sc">|&gt;</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(TermStart) <span class="sc">|&gt;</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">slice_max</span>(</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    TermYears,          <span class="co"># the published rule: the longest period</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="dv">1</span>,              <span class="co"># one period per contract</span></span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">with_ties =</span> <span class="cn">FALSE</span>,  <span class="co"># of periods equally long, the first the text states</span></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> DocID          <span class="co"># per contract</span></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    PeriodKind,          <span class="co"># what the chosen period governs</span></span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Contracts"</span>   <span class="co"># contracts whose longest period is of that kind</span></span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>candidates <span class="sc">|&gt;</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(TermStart) <span class="sc">|&gt;</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">slice_max</span>(</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    TermYears,          <span class="co"># the published rule: the longest period</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="dv">1</span>,              <span class="co"># one period per contract</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">with_ties =</span> <span class="cn">FALSE</span>,  <span class="co"># of periods equally long, the first the text states</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> DocID          <span class="co"># per contract</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    PeriodKind,          <span class="co"># what the chosen period governs</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Contracts"</span>   <span class="co"># contracts whose longest period is of that kind</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">

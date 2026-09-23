@@ -22,18 +22,18 @@ n_span_files <- length(list.files(
 ))
 ```
 
-The data package {{< var data.version >}} comes in `r nrow(parts)` parts: `r fmt_int(published_total("files"))` files
-besides the checksum manifest, `r fmt_bytes(published_total("bytes"))` in all, the parts below and a README at the
-root of the package. Each part is a folder that can be downloaded on its own. The parts are shared from
-{{< var data.archive >}}, each with its own download link.`r doi_text(vars$data$archive_doi)`
+The data package {{< var data.version >}} has `r nrow(parts)` parts: `r fmt_int(published_total("files"))` files,
+`r fmt_bytes(published_total("bytes"))` in all, plus a README and a checksum manifest at the root of the package.
+Each part is a folder that can be downloaded on its own. The parts are shared from {{< var data.archive >}}, each
+with its own download link; `r package_link` has a link of its own.`r doi_text(vars$data$archive_doi)`
 
-Every example on this site reads the sample in `sample/` of the [site's repository]({{< var site.repository >}}). It
-holds `r comp$labelled` contracts of the labelled sample, `r comp$per_category` from each of the `r comp$categories`
-detailed categories, plus `r comp$rejected` attachments the text screen rejected and all `r comp$copy_rows` registrant
-copies of `r comp$copy_attachments` attachments filed by several registrants, so that the checks below have something
-to show: `r comp$rows` rows in all, with the rows every table and span file holds for them. To run an example, clone
-the repository and run the code from its root. The examples need the R packages `arrow`, `dplyr`, `stringi` and
-`tibble`; none needs the data package.
+Every example on this site reads the sample in the [`sample/` folder]({{< var site.sample >}}) of the site's
+repository. The sample holds `r comp$labelled` contracts of the labelled sample, `r comp$per_category` from each of
+the `r comp$categories` detailed categories; `r comp$rejected` attachments the text screen rejected; and all
+`r comp$copy_rows` registrant copies of `r comp$copy_attachments` attachments filed by several registrants, so that
+the conventions below can be shown. That is `r comp$rows` rows of the contracts table, with the rows every other table
+and span file holds for them. The examples run from the root of a clone of the repository and need the R packages
+`arrow`, `dplyr`, `stringi` and `tibble`; none needs the data package.
 
 ## The parts
 
@@ -69,28 +69,17 @@ for (i in seq_len(nrow(parts))) {
 }
 ```
 
-## Getting a part
-
-Each part above links to its own folder; `r package_link` has a link of its own. At the root of the package are a
-`README.md` and a `MANIFEST.sha256`, which lists every file with its SHA-256 checksum. {{< var data.archive >}} may
-deliver a large folder as several zip files; unpack them into one folder, with `MANIFEST.sha256` at its root, before
-checking. From that folder (macOS, Linux), the first line checks the whole package and the second only the parts its
-pattern names, here `core` and `spans`:
-
-```bash
-shasum -a 256 -c MANIFEST.sha256
-grep -E '  (core|spans)/' MANIFEST.sha256 | shasum -a 256 -c
-```
-
 ## Reading the files
 
-The tables are parquet files. The package's README reads them as follows:
+The tables are parquet files:
 
 - R: `arrow::read_parquet("core/Contracts.parquet")`
 - Python: `pandas.read_parquet("core/Contracts.parquet")`
 - SQL: `duckdb -c "SELECT count(*) FROM 'core/Contracts.parquet'"`
+- Stata: StataNow reads parquet with `import parquet`; other editions convert a table with R (`haven::write_dta()`)
+  or Python (`pandas.DataFrame.to_stata()`) first, using the `StataName` column of the codebooks.
 
-No `.dta` files are published; [the Stata page](stata.qmd) says how to read the tables in Stata.
+No `.dta` files are published.
 
 The sample keeps the package's folders, file names and columns, so an example moves to the package by replacing
 `sample/` with the root of the package. The documents are the exception. The sample keeps them in one file,
@@ -163,7 +152,7 @@ cto_orders <- arrow::read_parquet("sample/core/CtoOrders.parquet")
 ```
 
 The core part holds the tables below with their codebooks, the contract index, the labelled sample and the keyword
-terms. The meanings shown are the codebook's own.
+terms. The column meanings shown are taken from the codebooks.
 
 ### Contracts
 
@@ -255,7 +244,7 @@ key_columns(
 the two EDGAR links; [its codebook below](#contractindex) lists every column. It is a compressed CSV, so it opens
 without a parquet reader.
 
-`Labels.parquet` is the labelled sample: one row per labelled contract with the annotators' labels and the
+`Labels.parquet` is the labelled sample: one row per labelled contract with the reference labels and the
 cross-validation fold in which it was held out (`Fold`), `r fmt_int(num("rows.labels"))` rows, of which the sample
 holds `r nrow(labels_sample)`.
 
@@ -325,9 +314,9 @@ stata_sentence <- if (stata_names_kept) {
 ```
 
 Every table in `core/` has a codebook beside it (`*_Codebook.csv`), one row per column with its type and meaning. The
-span files share one, whose `File` column names the file a row describes, and the documents in `text/` have their
-own. The sample holds them where the package does. `r stata_sentence` The search box above each codebook filters its
-rows.
+span files share one codebook, whose `File` column names the file a row describes, and the documents in `text/` have
+their own. The sample holds the codebooks where the package does. `r stata_sentence` The search box above each
+codebook filters its rows.
 
 ### Contracts
 
@@ -411,9 +400,9 @@ codebook_table("sample/spans/Spans_Codebook.csv")
 codebook_table("sample/text/Text_Codebook.csv")
 ```
 
-## Three things to know before counting
+## Conventions of the tables
 
-The examples below start from the contracts table of the sample:
+Three conventions matter for any count. The examples below start from the contracts table of the sample:
 
 ```{r}
 #| label: read-contracts
@@ -472,7 +461,7 @@ attachment already counted.
 ### Rejected attachments stay in the file
 
 `Removed` marks an attachment that failed the screen for usable text, and `RemClass` gives the reason. These
-attachments stay in the table, flagged, so that what was set aside remains visible; an analysis that wants readable
+attachments stay in the table, flagged, so that every retrieved attachment is accounted for; an analysis of readable
 contracts filters on `Removed`.
 
 ```{r}
@@ -683,7 +672,7 @@ dates["Sliced"] = [
 
 ## Known issues
 
-The package's README describes these issues of {{< var data.version >}}; the figures come from the sample.
+The package's README lists these issues of {{< var data.version >}}; the figures below come from the sample.
 
 ```{r}
 #| label: issue-columbia
@@ -743,3 +732,15 @@ trained from. The documents in [the documents part](#part-text) are filings the 
 extraction image contains LexNLP, which is licensed under the AGPL-3.0, and carries a notice
 (`lexnlp/NOTICE.md`). The full texts of the licences are in the `LICENSES` folder of the
 [site's repository]({{< var site.repository >}}).
+
+## Checking a download {#checking-a-download}
+
+`MANIFEST.sha256` at the root of the package lists every file with its SHA-256 checksum. {{< var data.archive >}}
+may deliver a large folder as several zip files; unpack them into one folder, with `MANIFEST.sha256` at its root,
+before checking. From that folder (macOS, Linux), the first line checks the whole package and the second only the
+parts its pattern names, here `core` and `spans`:
+
+```bash
+shasum -a 256 -c MANIFEST.sha256
+grep -E '  (core|spans)/' MANIFEST.sha256 | shasum -a 256 -c
+```
