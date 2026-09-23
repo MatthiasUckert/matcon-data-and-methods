@@ -1,8 +1,7 @@
 ---
 title: "The data"
 description: >-
-  The parts of the data package, the tables of the database, their codebooks, and three things to know before
-  counting anything.
+  The parts of the data package, the tables of the database, their codebooks, and the conventions of the tables.
 ---
 
 ```{r}
